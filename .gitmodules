@@ -1,0 +1,6 @@
+[submodule "third-party/qzxing"]
+	path = third-party/qzxing
+	url = git@github.com:ftylitak/qzxing.git
+[submodule "third-party/QGoogleWrapper"]
+	path = third-party/QGoogleWrapper
+	url = git@github.com:xavi-b/QGoogleWrapper.git
