@@ -4,6 +4,8 @@ import QtLocation 5.14
 import QtPositioning 5.14
 
 Item {
+    id: mainItem
+
     property var portname: "/dev/pts/1"
 
     PositionSource {
@@ -20,9 +22,7 @@ Item {
         }
 
         onPositionChanged: {
-            poiCurrent.coordinate = src.position.coordinate;
-            map.center = src.position.coordinate;
-            console.log("Coordinate:", poiCurrent.coordinate.longitude, poiCurrent.coordinate.latitude);
+            mainPage.position = src.position.coordinate;
         }
 
         onSourceErrorChanged: {
@@ -34,31 +34,21 @@ Item {
         }
     }
 
-    Page {
+    MainPage {
+        id: mainPage
+    }
+
+    SearchPage {
+        id: searchPage
+    }
+
+    DrivePage {
+        id: drivePage
+    }
+
+    StackView {
+        id: mainStackView
+        initialItem: mainPage
         anchors.fill: parent
-
-        header: ToolBar {
-
-        }
-
-        Map {
-            id: map
-            anchors.fill: parent
-            plugin: mapPlugin
-            zoomLevel: 20
-
-            Plugin {
-                id: mapPlugin
-                name: "osm"
-            }
-
-            MapQuickItem {
-                id: poiCurrent
-                sourceItem: Rectangle { width: 14; height: 14; color: "#1e25e4"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-                opacity: 1.0
-                anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
-            }
-
-        }
     }
 }
