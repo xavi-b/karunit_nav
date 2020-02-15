@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.14
 import QtLocation 5.14
 
 Page {
+    property var defaultZoom: 20
     property var position;
 
     onPositionChanged: {
@@ -112,18 +113,19 @@ Page {
             ListView {
                 id: addressesListView
                 anchors.fill: parent
+                spacing: 5
 
                 model: geocodeModel
                 delegate: RowLayout {
                     Rectangle {
                         color: "lightgrey"
-                        Layout.fillWidth: true
+                        width: addressesListView.width
                         height: childrenRect.height
 
                         Column {
                             padding: 5
                             TextEdit {
-                                text: locationData.coordinate.latitute + " " + locationData.street + " " + locationData.city + " " + locationData.country
+                                text: locationData.address.text
                                 readOnly: true
                                 wrapMode: Text.WordWrap
                                 selectByMouse: true
@@ -134,8 +136,9 @@ Page {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                //TODO
-                                console.log("click");
+                                map.center = locationData.coordinate;
+                                map.zoomLevel = map.maximumZoomLevel;
+                                map.update();
                             }
                         }
                     }
@@ -166,7 +169,7 @@ Page {
                     anchors.fill: parent
                     id: map
                     plugin: Plugin { name: "osm" }
-                    zoomLevel: 20
+                    zoomLevel: defautZoom
 
                     MapQuickItem {
                         id: poiCurrent
