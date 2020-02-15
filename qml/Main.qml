@@ -6,7 +6,7 @@ import QtPositioning 5.14
 Item {
     id: mainItem
 
-    property var portname: "/dev/pts/1"
+    property var portname: "/dev/pts/2"
 
     PositionSource {
         id: src
@@ -23,6 +23,7 @@ Item {
 
         onPositionChanged: {
             mainPage.position = src.position.coordinate;
+            searchPage.position = src.position.coordinate;
         }
 
         onSourceErrorChanged: {

@@ -6,7 +6,7 @@ Page {
     property var position;
 
     onPositionChanged: {
-        //TODO
+        poiCurrent.coordinate = src.position.coordinate;
     }
 
     header: ToolBar {
@@ -53,6 +53,14 @@ Page {
                 height: 1
                 color: searchPlaceHolderText.color
             }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    mainStackView.push(searchPage, {}, StackView.Immediate);
+                    searchPage.giveFocusToSearch();
+                }
+            }
         }
     }
 
@@ -82,13 +90,8 @@ Page {
     Map {
         id: map
         anchors.fill: parent
-        plugin: mapPlugin
+        plugin: Plugin { name: "osm" }
         zoomLevel: 20
-
-        Plugin {
-            id: mapPlugin
-            name: "osm"
-        }
 
         MapQuickItem {
             id: poiCurrent
@@ -96,7 +99,6 @@ Page {
             opacity: 1.0
             anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
         }
-
     }
 
     RoundButton {

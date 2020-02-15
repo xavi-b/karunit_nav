@@ -21,7 +21,7 @@ Page {
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: {
                 if (mainStackView.depth > 1) {
-                    mainStackView.pop()
+                    mainStackView.pop(StackView.Immediate)
                 }
             }
         }
@@ -30,13 +30,8 @@ Page {
     Map {
         id: map
         anchors.fill: parent
-        plugin: mapPlugin
+        plugin: Plugin { name: "osm" }
         zoomLevel: 20
-
-        Plugin {
-            id: mapPlugin
-            name: "osm"
-        }
 
         MapQuickItem {
             id: poiCurrent
