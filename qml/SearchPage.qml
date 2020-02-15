@@ -138,7 +138,6 @@ Page {
                             onClicked: {
                                 map.center = locationData.coordinate;
                                 map.zoomLevel = map.maximumZoomLevel;
-                                map.update();
                             }
                         }
                     }
