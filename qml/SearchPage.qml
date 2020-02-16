@@ -1,6 +1,7 @@
 import QtQuick 2.14
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
+import QtQuick.XmlListModel 2.12
 import QtLocation 5.14
 
 Page {
@@ -13,6 +14,11 @@ Page {
 
     function giveFocusToSearch() {
         searchTextInput.forceActiveFocus();
+    }
+
+    function clear() {
+        searchTextInput.clear();
+        geocodeModel.reset();
     }
 
     header: ToolBar {
@@ -92,11 +98,66 @@ Page {
                 poiCurrent.visible = false;
                 map.fitViewportToVisibleMapItems();
                 poiCurrent.visible = true;
+
+                addressesListView.currentIndex = 0;
+                reverseXmlModel.reverseSearch(get(0).coordinate);
             } else {
                 //TODO search for close by locations
                 //TODO if no results, search in larger bounds
             }
         }
+    }
+
+    // https://github.com/costales/unav/blob/master/qml/Main.qml#L601
+    XmlListModel {
+        id: reverseXmlModel
+
+        readonly property string baseUrl: "https://nominatim.openstreetmap.org/reverse?format=xml&addressdetails=0&extratags=1&zoom=18&namedetails=1&"
+
+        function reverseSearch(coordinate) {
+            source = (baseUrl + "lat=" + coordinate.latitude + "&lon=" + coordinate.longitude);
+        }
+
+        function clear() {
+            source = "";
+        }
+
+        onStatusChanged: {
+            console.log("reverseXmlModel onStatusChanged")
+            if (status === XmlListModel.Error || (status === XmlListModel.Ready && count === 0)) {
+                console.log("Error reverse geocoding the location!")
+            } else if (status === XmlListModel.Ready) {
+                if(count > 0) {
+                    console.log(JSON.stringify(reverseXmlModel.get(0)));
+                    // Check if the location returned by reverse geocoding is a POI by looking for the existence of certain parameters
+                    // like cuisine, phone, opening_hours, internet_access, wheelchair etc that do not apply to a generic address
+                    if(reverseXmlModel.get(0).description
+                    || reverseXmlModel.get(0).cuisine
+                    || reverseXmlModel.get(0).phone
+                    || reverseXmlModel.get(0).contactphone
+                    || reverseXmlModel.get(0).opening_hours) {
+                        //TODO
+                    } else {
+                        //TODO
+                    }
+                } else {
+                    //TODO
+                }
+            }
+        }
+
+        source: ""
+        query: "/reversegeocode"
+
+        XmlRole { name: "osm_type"; query: "result/@osm_type/string()" }
+        XmlRole { name: "osm_id"; query: "result/@osm_id/string()" }
+        XmlRole { name: "result"; query: "result/string()" }
+        XmlRole { name: "name"; query: "namedetails/name[1]/string()" }
+        XmlRole { name: "description"; query: "extratags/tag[@key='description']/@value/string()" }
+        XmlRole { name: "cuisine"; query: "extratags/tag[@key='cuisine']/@value/string()" }
+        XmlRole { name: "opening_hours"; query: "extratags/tag[@key='opening_hours']/@value/string()" }
+        XmlRole { name: "phone"; query: "extratags/tag[@key='phone']/@value/string()" }
+        XmlRole { name: "contactphone"; query: "extratags/tag[@key='contact:phone']/@value/string()" }
     }
 
     Item {
@@ -118,27 +179,45 @@ Page {
                 model: geocodeModel
                 delegate: RowLayout {
                     Rectangle {
-                        color: "lightgrey"
+                        color: addressesListView.currentIndex == index ? "aquamarine" : "lightgrey"
                         width: addressesListView.width
                         height: childrenRect.height
 
-                        Column {
-                            padding: 5
+                        RowLayout {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+
                             TextEdit {
+                                Layout.margins: 5
+                                Layout.fillWidth: true
                                 text: locationData.address.text
                                 readOnly: true
                                 wrapMode: Text.WordWrap
                                 selectByMouse: true
                                 font.bold: true
-                            }
-                        }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                map.center = locationData.coordinate;
-                                map.zoomLevel = map.maximumZoomLevel;
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        map.center = locationData.coordinate;
+                                        map.zoomLevel = map.maximumZoomLevel;
+
+                                        addressesListView.currentIndex = index;
+                                        reverseXmlModel.reverseSearch(locationData.coordinate);
+                                    }
+                                }
                             }
+
+//                            RoundButton {
+//                                Layout.margins: 5
+//                                Layout.alignment: Qt.AlignRight
+//                                id: goToButton
+//                                text: ">"
+
+//                                onClicked: {
+//                                    //TODO
+//                                }
+//                            }
                         }
                     }
                 }
@@ -157,7 +236,7 @@ Page {
                 height: 100
 
                 //TODO
-                color: "blue"
+                color: "aquamarine"
             }
 
             Item {
@@ -168,7 +247,7 @@ Page {
                     anchors.fill: parent
                     id: map
                     plugin: Plugin { name: "osm" }
-                    zoomLevel: defautZoom
+                    zoomLevel: defaultZoom
 
                     MapQuickItem {
                         id: poiCurrent
