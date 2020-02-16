@@ -4,6 +4,7 @@ import QtLocation 5.14
 
 Page {
     property var position;
+    property var destinationPosition;
 
     onPositionChanged: {
         map.center = src.position.coordinate;

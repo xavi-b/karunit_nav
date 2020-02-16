@@ -57,6 +57,7 @@ Page {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
+                    searchPage.clear();
                     mainStackView.push(searchPage, {}, StackView.Immediate);
                     searchPage.giveFocusToSearch();
                 }

@@ -4,5 +4,6 @@
         <file>qml/DrivePage.qml</file>
         <file>qml/MainPage.qml</file>
         <file>qml/SearchPage.qml</file>
+        <file>qml/RoutePage.qml</file>
     </qresource>
 </RCC>

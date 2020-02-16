@@ -24,6 +24,8 @@ Item {
         onPositionChanged: {
             mainPage.position = src.position.coordinate;
             searchPage.position = src.position.coordinate;
+            routePage.position = src.position.coordinate;
+            drivePage.position = src.position.coordinate;
         }
 
         onSourceErrorChanged: {
@@ -41,6 +43,10 @@ Item {
 
     SearchPage {
         id: searchPage
+    }
+
+    RoutePage {
+        id: routePage
     }
 
     DrivePage {
