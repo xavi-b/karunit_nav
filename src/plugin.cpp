@@ -44,6 +44,7 @@ QWidget* KU_Nav_Plugin::createWidget()
 {
     this->widget = new GeoWidget(&this->engine);
     connect(this->widget, &GeoWidget::log, this->getPluginConnector(), &KU::PLUGIN::PluginConnector::log);
+    //TODO connect(this->widget, &GeoWidget::call, );
     return this->widget;
 }
 

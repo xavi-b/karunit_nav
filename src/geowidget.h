@@ -13,6 +13,7 @@ public:
 
 signals:
     void log(QString const& log);
+    void call(QString const& phoneNumber);
 
 };
 

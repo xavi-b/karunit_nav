@@ -6,7 +6,7 @@ Page {
     property var position;
 
     onPositionChanged: {
-        poiCurrent.coordinate = src.position.coordinate;
+        poiCurrent.coordinate = position;
     }
 
     header: ToolBar {

@@ -6,7 +6,9 @@ import QtPositioning 5.14
 Item {
     id: mainItem
 
-    property var portname: "/dev/pts/2"
+    property var portname: "/dev/pts/1"
+
+    signal call(phoneNumber: string);
 
     PositionSource {
         id: src
@@ -43,6 +45,12 @@ Item {
 
     SearchPage {
         id: searchPage
+        onCall: call(phoneNumber);
+        onGoTo: function(latitude, longitude) {
+            routePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
+            mainStackView.push(routePage, StackView.Immediate);
+            routePage.start();
+        }
     }
 
     RoutePage {

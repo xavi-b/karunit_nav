@@ -2,14 +2,16 @@ import QtQuick 2.14
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.14
 import QtQuick.XmlListModel 2.12
+import QtQml.Models 2.1
 import QtLocation 5.14
 
 Page {
     property var defaultZoom: 20
     property var position;
+    property var currentIndexCoordinate;
 
     onPositionChanged: {
-        poiCurrent.coordinate = src.position.coordinate;
+        poiCurrent.coordinate = position;
     }
 
     function giveFocusToSearch() {
@@ -20,6 +22,9 @@ Page {
         searchTextInput.clear();
         geocodeModel.reset();
     }
+
+    signal call(phoneNumber: string);
+    signal goTo(latitude: double, longitude: double);
 
     header: ToolBar {
         contentHeight: goBackButton.implicitHeight
@@ -100,6 +105,7 @@ Page {
                 poiCurrent.visible = true;
 
                 addressesListView.currentIndex = 0;
+                currentIndexCoordinate = get(0).coordinate;
                 reverseXmlModel.reverseSearch(get(0).coordinate);
             } else {
                 //TODO search for close by locations
@@ -112,7 +118,7 @@ Page {
     XmlListModel {
         id: reverseXmlModel
 
-        readonly property string baseUrl: "https://nominatim.openstreetmap.org/reverse?format=xml&addressdetails=0&extratags=1&zoom=18&namedetails=1&"
+        readonly property string baseUrl: "https://nominatim.openstreetmap.org/reverse?format=xml&email=developer@xavi-b.fr&addressdetails=0&extratags=1&zoom=18&namedetails=1&"
 
         function reverseSearch(coordinate) {
             source = (baseUrl + "lat=" + coordinate.latitude + "&lon=" + coordinate.longitude);
@@ -125,23 +131,10 @@ Page {
         onStatusChanged: {
             console.log("reverseXmlModel onStatusChanged")
             if (status === XmlListModel.Error || (status === XmlListModel.Ready && count === 0)) {
-                console.log("Error reverse geocoding the location!")
+                console.log("Error reverse geocoding the location: " + errorString())
             } else if (status === XmlListModel.Ready) {
                 if(count > 0) {
-                    console.log(JSON.stringify(reverseXmlModel.get(0)));
-                    // Check if the location returned by reverse geocoding is a POI by looking for the existence of certain parameters
-                    // like cuisine, phone, opening_hours, internet_access, wheelchair etc that do not apply to a generic address
-                    if(reverseXmlModel.get(0).description
-                    || reverseXmlModel.get(0).cuisine
-                    || reverseXmlModel.get(0).phone
-                    || reverseXmlModel.get(0).contactphone
-                    || reverseXmlModel.get(0).opening_hours) {
-                        //TODO
-                    } else {
-                        //TODO
-                    }
-                } else {
-                    //TODO
+                    visualModel.filter();
                 }
             }
         }
@@ -158,6 +151,64 @@ Page {
         XmlRole { name: "opening_hours"; query: "extratags/tag[@key='opening_hours']/@value/string()" }
         XmlRole { name: "phone"; query: "extratags/tag[@key='phone']/@value/string()" }
         XmlRole { name: "contactphone"; query: "extratags/tag[@key='contact:phone']/@value/string()" }
+    }
+
+    DelegateModel {
+        id: visualModel
+        model: reverseXmlModel
+
+        items.includeByDefault: false
+
+        groups: [
+            DelegateModelGroup {
+                id: itemsGroup
+                name: "items"
+                includeByDefault: false
+            }
+        ]
+
+        //TODO
+        delegate: RowLayout {
+            TextEdit {
+                Layout.margins: 5
+                Layout.fillWidth: true
+                text: "Phone: " + phone
+                readOnly: true
+                wrapMode: Text.WordWrap
+                selectByMouse: true
+                font.bold: true
+            }
+
+            RoundButton {
+                Layout.margins: 5
+                Layout.alignment: Qt.AlignRight
+                id: goToButton
+                text: ">"
+
+                onClicked: {
+                    //TODO
+                }
+            }
+        }
+
+        function filter() {
+            var rowCount = model.count;
+            items.remove(0, visualModel.count);
+            for(var i = 0; i < rowCount; ++i) {
+                var entry = model.get(i);
+                console.log(JSON.stringify(entry));
+
+                // Check if the location returned by reverse geocoding is a POI by looking for the existence of certain parameters
+                // like cuisine, phone, opening_hours, internet_access, wheelchair etc that do not apply to a generic address
+                if(entry.description
+                || entry.cuisine
+                || entry.phone
+                || entry.contactphone
+                || entry.opening_hours) {
+                    items.insert(entry, "items");
+                }
+            }
+        }
     }
 
     Item {
@@ -203,28 +254,18 @@ Page {
                                         map.zoomLevel = map.maximumZoomLevel;
 
                                         addressesListView.currentIndex = index;
+                                        currentIndexCoordinate = locationData.coordinate;
                                         reverseXmlModel.reverseSearch(locationData.coordinate);
                                     }
                                 }
                             }
-
-//                            RoundButton {
-//                                Layout.margins: 5
-//                                Layout.alignment: Qt.AlignRight
-//                                id: goToButton
-//                                text: ">"
-
-//                                onClicked: {
-//                                    //TODO
-//                                }
-//                            }
                         }
                     }
                 }
             }
         }
 
-        ColumnLayout {
+        Item {
             id: infoPane
             anchors.top: parent.top
             anchors.bottom: parent.bottom
@@ -232,16 +273,42 @@ Page {
             anchors.left: sidePane.right
 
             Rectangle {
-                Layout.fillWidth: true
-                height: 100
-
-                //TODO
+                id: infoRectangle
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: addressesListView.currentIndex < 0 ? 0 : panes.height * 0.25
                 color: "aquamarine"
+
+                ListView {
+                    id: placesListView
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: goButton.top
+                    spacing: 5
+                    clip: true
+
+                    model: visualModel
+                }
+
+                Button {
+                    id: goButton
+                    text: "Go"
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    onClicked: {
+                        searchPage.goTo(currentIndexCoordinate.latitude, currentIndexCoordinate.longitude);
+                    }
+                }
             }
 
             Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                anchors.top: infoRectangle.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
 
                 Map {
                     anchors.fill: parent

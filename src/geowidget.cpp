@@ -5,4 +5,6 @@ GeoWidget::GeoWidget(QQmlEngine* engine, QWidget *parent)
 {
     this->setResizeMode(QQuickWidget::SizeRootObjectToView);
     this->setSource(QUrl("qrc:/qml/Main.qml"));
+
+    connect(this->rootObject(), SIGNAL(call(QString)), this, SIGNAL(call(QString const&)));
 }

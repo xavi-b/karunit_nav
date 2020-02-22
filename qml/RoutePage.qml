@@ -4,17 +4,19 @@ import QtLocation 5.14
 
 Page {
     property var position;
-    property var destinationPosition;
+    property var destinationCoordinate;
 
     onPositionChanged: {
-        map.center = src.position.coordinate;
-        poiCurrent.coordinate = src.position.coordinate;
+        map.center = position;
+        poiCurrent.coordinate = position;
     }
 
     function start() {
         routeQuery.clearWaypoints();
+        console.log(JSON.stringify(position));
+        console.log(JSON.stringify(destinationCoordinate));
         routeQuery.addWaypoint(position);
-        routeQuery.addWaypoint(destinationPosition);
+        routeQuery.addWaypoint(destinationCoordinate);
         routeModel.update();
         map.fitViewportToMapItems();
     }
@@ -30,7 +32,7 @@ Page {
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: {
                 if (mainStackView.depth > 1) {
-                    mainStackView.pop(StackView.Immediate)
+                    mainStackView.pop(StackView.Immediate);
                 }
             }
         }
@@ -44,7 +46,7 @@ Page {
 
     RouteModel {
         id: routeModel
-        plugin: mapPlugin
+        plugin: Plugin { name: "osm" }
         query: routeQuery
         autoUpdate: false
         onStatusChanged: {
@@ -52,11 +54,22 @@ Page {
                 console.log("error: " + errorString);
             }
             if(status == RouteModel.Ready) {
-                var totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
+                /*var totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
                 var totalDistance = routeModel.count == 0 ? "" : formatDistance(routeModel.get(0).distance);
 
                 console.log("totalTravelTime: " + totalTravelTime);
-                console.log("totalDistance: " + totalDistance);
+                console.log("totalDistance: " + totalDistance);*/
+                console.log(JSON.stringify(routeModel.get(0)));
+                /*
+                if (routeModel.count > 0) {
+                    for (var i = 0; i < routeModel.get(0).segments.length; i++) {
+                        routeInfoModel.append({
+                            "instruction": routeModel.get(0).segments[i].maneuver.instructionText,
+                             "distance": Helper.formatDistance(routeModel.get(0).segments[i].maneuver.distanceToNextInstruction)
+                        });
+                    }
+                }
+                */
             }
         }
     }
@@ -90,7 +103,7 @@ Page {
         MapQuickItem {
             id: poiEnd
             sourceItem: Rectangle { width: 14; height: 14; color: "#1ee425"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-            coordinate: endCoordinates
+            coordinate: destinationCoordinate
             opacity: 1.0
             anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
         }

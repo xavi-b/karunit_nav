@@ -7,8 +7,8 @@ Page {
     property var destinationPosition;
 
     onPositionChanged: {
-        map.center = src.position.coordinate;
-        poiCurrent.coordinate = src.position.coordinate;
+        map.center = position;
+        poiCurrent.coordinate = position;
     }
 
     header: ToolBar {
@@ -22,7 +22,7 @@ Page {
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: {
                 if (mainStackView.depth > 1) {
-                    mainStackView.pop(StackView.Immediate)
+                    mainStackView.pop(StackView.Immediate);
                 }
             }
         }
