@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/karunit_nav">
         <file>qml/Main.qml</file>
         <file>qml/DrivePage.qml</file>
         <file>qml/MainPage.qml</file>
