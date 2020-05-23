@@ -48,6 +48,11 @@ QWidget* KU_Nav_Plugin::createSettingsWidget()
     return nullptr;
 }
 
+QWidget* KU_Nav_Plugin::createAboutWidget()
+{
+    return nullptr;
+}
+
 bool KU_Nav_Plugin::loadSettings()
 {
     return true;
