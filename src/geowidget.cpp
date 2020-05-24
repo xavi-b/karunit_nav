@@ -1,7 +1,7 @@
 #include "geowidget.h"
 
-GeoWidget::GeoWidget(QQmlEngine* engine, QWidget *parent)
-    : QQuickWidget(engine, parent)
+GeoWidget::GeoWidget(QWidget *parent)
+    : QQuickWidget(parent)
 {
     this->setResizeMode(QQuickWidget::SizeRootObjectToView);
     this->setSource(QUrl("qrc:/karunit_nav/qml/Main.qml"));

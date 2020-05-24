@@ -9,7 +9,7 @@ class GeoWidget : public QQuickWidget
 {
     Q_OBJECT
 public:
-    GeoWidget(QQmlEngine* engine, QWidget* parent = nullptr);
+    GeoWidget(QWidget* parent = nullptr);
 
 signals:
     void log(QString const& log);

@@ -34,7 +34,6 @@ public:
     virtual bool saveSettings() const override;
 
 private:
-    QQmlEngine engine;
     GeoWidget* widget = nullptr;
 };
 

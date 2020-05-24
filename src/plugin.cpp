@@ -37,7 +37,7 @@ bool KU_Nav_Plugin::stop()
 
 QWidget* KU_Nav_Plugin::createWidget()
 {
-    this->widget = new GeoWidget(&this->engine);
+    this->widget = new GeoWidget;
     connect(this->widget, &GeoWidget::log, this->getPluginConnector(), &KU::PLUGIN::PluginConnector::log);
     //TODO connect(this->widget, &GeoWidget::call, );
     return this->widget;
