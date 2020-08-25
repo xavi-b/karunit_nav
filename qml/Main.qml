@@ -6,9 +6,24 @@ import QtPositioning 5.14
 Item {
     id: mainItem
 
-    property var portname: "/dev/pts/1"
+    property var portname: "/dev/pts/0"
+    property string mapboxAccessToken
 
     signal call(phoneNumber: string);
+
+    Plugin {
+        id: mapPlugin
+        name: "mapboxgl"
+
+        PluginParameter { name: "mapbox.access_token"; value: mapboxAccessToken }
+    }
+
+    Plugin {
+        id: geoPlugin
+        name: "mapbox"
+
+        PluginParameter { name: "mapbox.access_token"; value: mapboxAccessToken }
+    }
 
     PositionSource {
         id: src
@@ -31,11 +46,27 @@ Item {
         }
 
         onSourceErrorChanged: {
-            console.log("Error: " + sourceError);
+            switch(sourceError) {
+            case PositionSource.AccessError:
+                console.log("AccessError"); break;
+            case PositionSource.ClosedError:
+                console.log("ClosedError"); break;
+            case PositionSource.NoError:
+                console.log("NoError"); break;
+            case PositionSource.UnknownSourceError:
+                console.log("UnknownSourceError"); break;
+            case PositionSource.AccessError:
+                console.log("SocketError"); break;
+            }
+
         }
 
         onUpdateTimeout: {
             console.log("Update timeout");
+        }
+
+        onActiveChanged: {
+            console.log("Active: " + active);
         }
     }
 
@@ -47,6 +78,9 @@ Item {
         id: searchPage
         onCall: call(phoneNumber);
         onGoTo: function(latitude, longitude) {
+            console.log("test")
+            console.log(latitude)
+            console.log(longitude)
             routePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
             mainStackView.push(routePage, StackView.Immediate);
             routePage.start();

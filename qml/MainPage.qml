@@ -5,7 +5,14 @@ import QtLocation 5.14
 Page {
     property var position;
 
+    property bool firstCenter: false
+
     onPositionChanged: {
+        if(!firstCenter) {
+            map.center = position;
+            firstCenter = true;
+        }
+
         poiCurrent.coordinate = position;
     }
 
@@ -91,7 +98,7 @@ Page {
     Map {
         id: map
         anchors.fill: parent
-        plugin: Plugin { name: "osm" }
+        plugin: mapPlugin
         zoomLevel: 20
 
         MapQuickItem {

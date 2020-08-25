@@ -4,6 +4,8 @@
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <QQmlContext>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 class GeoWidget : public QQuickWidget
 {

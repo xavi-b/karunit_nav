@@ -7,7 +7,6 @@ Page {
     property var destinationCoordinate;
 
     onPositionChanged: {
-        map.center = position;
         poiCurrent.coordinate = position;
     }
 
@@ -46,7 +45,7 @@ Page {
 
     RouteModel {
         id: routeModel
-        plugin: Plugin { name: "osm" }
+        plugin: geoPlugin
         query: routeQuery
         autoUpdate: false
         onStatusChanged: {
@@ -54,22 +53,20 @@ Page {
                 console.log("error: " + errorString);
             }
             if(status == RouteModel.Ready) {
-                /*var totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
+                var totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
                 var totalDistance = routeModel.count == 0 ? "" : formatDistance(routeModel.get(0).distance);
 
                 console.log("totalTravelTime: " + totalTravelTime);
-                console.log("totalDistance: " + totalDistance);*/
-                console.log(JSON.stringify(routeModel.get(0)));
-                /*
+                console.log("totalDistance: " + totalDistance);
+
                 if (routeModel.count > 0) {
-                    for (var i = 0; i < routeModel.get(0).segments.length; i++) {
+                    /*for (var i = 0; i < routeModel.get(0).segments.length; i++) {
                         routeInfoModel.append({
                             "instruction": routeModel.get(0).segments[i].maneuver.instructionText,
                              "distance": Helper.formatDistance(routeModel.get(0).segments[i].maneuver.distanceToNextInstruction)
                         });
-                    }
+                    }*/
                 }
-                */
             }
         }
     }
@@ -77,7 +74,7 @@ Page {
     Map {
         id: map
         anchors.fill: parent
-        plugin: Plugin { name: "osm" }
+        plugin: mapPlugin
         zoomLevel: 20
 
         MapItemView {

@@ -31,7 +31,7 @@ Page {
     Map {
         id: map
         anchors.fill: parent
-        plugin: Plugin { name: "osm" }
+        plugin: mapPlugin
         zoomLevel: 20
 
         MapQuickItem {

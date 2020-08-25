@@ -5,5 +5,6 @@
         <file>qml/MainPage.qml</file>
         <file>qml/SearchPage.qml</file>
         <file>qml/RoutePage.qml</file>
+        <file>res/mapbox.json</file>
     </qresource>
 </RCC>

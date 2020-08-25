@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.14
 import QtQuick.XmlListModel 2.12
 import QtQml.Models 2.1
 import QtLocation 5.14
+import QtPositioning 5.14
 
 Page {
     property var defaultZoom: 20
@@ -20,7 +21,7 @@ Page {
 
     function clear() {
         searchTextInput.clear();
-        geocodeModel.reset();
+        placeSearchModel.reset();
     }
 
     signal call(phoneNumber: string);
@@ -73,141 +74,46 @@ Page {
                 color: searchPlaceHolderText.color
             }
 
-            onTextEdited: {
-                geocodeModel.query = searchTextInput.text;
-                geocodeModel.update();
+            onEditingFinished: {
+                placeSearchModel.searchTerm = searchTextInput.text;
+                placeSearchModel.searchArea = QtPositioning.circle(position);
+                //placeSearchModel.searchArea = map.visibleArea;
+                placeSearchModel.update();
             }
         }
     }
 
-    GeocodeModel {
-        id: geocodeModel
-        plugin: map.plugin
-        autoUpdate: false
+    PlaceSearchModel {
+        id: placeSearchModel
+        plugin: geoPlugin
+
+        relevanceHint: PlaceSearchModel.DistanceHint
 
         onStatusChanged: {
-            if (status == GeocodeModel.Error) {
-                console.log("GeocodeModel error: " + errorString);
-            } else if (status == GeocodeModel.Null) {
-                console.log("GeocodeModel null");
-            } else if (status == GeocodeModel.Loading) {
-                console.log("GeocodeModel loading");
-            } else {
-                console.log("GeocodeModel ready");
+            switch (status) {
+            case PlaceSearchModel.Ready:
+//                poiCurrent.visible = false;
+//                map.fitViewportToVisibleMapItems();
+//                poiCurrent.visible = true;
+                break;
+            case PlaceSearchModel.Error:
+                console.log(errorString());
+                break;
             }
         }
-        onLocationsChanged: {
-            if(count > 0) {
-                console.log("GeocodeModel count: " + count);
-                console.log("GeocodeModel 0: " + JSON.stringify(get(0)));
-                poiCurrent.visible = false;
-                map.fitViewportToVisibleMapItems();
-                poiCurrent.visible = true;
 
-                addressesListView.currentIndex = 0;
-                currentIndexCoordinate = get(0).coordinate;
-                reverseXmlModel.reverseSearch(get(0).coordinate);
-            } else {
-                //TODO search for close by locations
-                //TODO if no results, search in larger bounds
-            }
-        }
     }
 
-    // https://github.com/costales/unav/blob/master/qml/Main.qml#L601
-    XmlListModel {
-        id: reverseXmlModel
+    property var currentPlace: Place;
 
-        readonly property string baseUrl: "https://nominatim.openstreetmap.org/reverse?format=xml&email=developer@xavi-b.fr&addressdetails=0&extratags=1&zoom=18&namedetails=1&"
+    function focusOnPlace(place) {
+        map.center = place.location.coordinate;
+        map.zoomLevel = map.maximumZoomLevel;
 
-        function reverseSearch(coordinate) {
-            source = (baseUrl + "lat=" + coordinate.latitude + "&lon=" + coordinate.longitude);
-        }
-
-        function clear() {
-            source = "";
-        }
-
-        onStatusChanged: {
-            console.log("reverseXmlModel onStatusChanged")
-            if (status === XmlListModel.Error || (status === XmlListModel.Ready && count === 0)) {
-                console.log("Error reverse geocoding the location: " + errorString())
-            } else if (status === XmlListModel.Ready) {
-                if(count > 0) {
-                    visualModel.filter();
-                }
-            }
-        }
-
-        source: ""
-        query: "/reversegeocode"
-
-        XmlRole { name: "osm_type"; query: "result/@osm_type/string()" }
-        XmlRole { name: "osm_id"; query: "result/@osm_id/string()" }
-        XmlRole { name: "result"; query: "result/string()" }
-        XmlRole { name: "name"; query: "namedetails/name[1]/string()" }
-        XmlRole { name: "description"; query: "extratags/tag[@key='description']/@value/string()" }
-        XmlRole { name: "cuisine"; query: "extratags/tag[@key='cuisine']/@value/string()" }
-        XmlRole { name: "opening_hours"; query: "extratags/tag[@key='opening_hours']/@value/string()" }
-        XmlRole { name: "phone"; query: "extratags/tag[@key='phone']/@value/string()" }
-        XmlRole { name: "contactphone"; query: "extratags/tag[@key='contact:phone']/@value/string()" }
-    }
-
-    DelegateModel {
-        id: visualModel
-        model: reverseXmlModel
-
-        items.includeByDefault: false
-
-        groups: [
-            DelegateModelGroup {
-                id: itemsGroup
-                name: "items"
-                includeByDefault: false
-            }
-        ]
-
-        //TODO
-        delegate: RowLayout {
-            TextEdit {
-                Layout.margins: 5
-                Layout.fillWidth: true
-                text: "Phone: " + phone
-                readOnly: true
-                wrapMode: Text.WordWrap
-                selectByMouse: true
-                font.bold: true
-            }
-
-            RoundButton {
-                Layout.margins: 5
-                Layout.alignment: Qt.AlignRight
-                id: goToButton
-                text: ">"
-
-                onClicked: {
-                    //TODO
-                }
-            }
-        }
-
-        function filter() {
-            var rowCount = model.count;
-            items.remove(0, visualModel.count);
-            for(var i = 0; i < rowCount; ++i) {
-                var entry = model.get(i);
-                console.log(JSON.stringify(entry));
-
-                // Check if the location returned by reverse geocoding is a POI by looking for the existence of certain parameters
-                // like cuisine, phone, opening_hours, internet_access, wheelchair etc that do not apply to a generic address
-                if(entry.description
-                || entry.cuisine
-                || entry.phone
-                || entry.contactphone
-                || entry.opening_hours) {
-                    items.insert(entry, "items");
-                }
-            }
+        currentIndexCoordinate = place.location.coordinate;
+        if (!place.detailsFetched) {
+            place.getDetails();
+            currentPlace = place;
         }
     }
 
@@ -227,10 +133,10 @@ Page {
                 anchors.fill: parent
                 spacing: 5
 
-                model: geocodeModel
+                model: placeSearchModel
                 delegate: RowLayout {
                     Rectangle {
-                        color: addressesListView.currentIndex == index ? "aquamarine" : "lightgrey"
+                        color: "lightgrey"
                         width: addressesListView.width
                         height: childrenRect.height
 
@@ -238,24 +144,17 @@ Page {
                             anchors.left: parent.left
                             anchors.right: parent.right
 
-                            TextEdit {
+                            Text {
                                 Layout.margins: 5
                                 Layout.fillWidth: true
-                                text: locationData.address.text
-                                readOnly: true
+                                text: title + "<br>" + place.location.address.text
                                 wrapMode: Text.WordWrap
-                                selectByMouse: true
                                 font.bold: true
 
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: {
-                                        map.center = locationData.coordinate;
-                                        map.zoomLevel = map.maximumZoomLevel;
-
-                                        addressesListView.currentIndex = index;
-                                        currentIndexCoordinate = locationData.coordinate;
-                                        reverseXmlModel.reverseSearch(locationData.coordinate);
+                                        focusOnPlace(place);
                                     }
                                 }
                             }
@@ -277,19 +176,36 @@ Page {
                 anchors.top: parent.top
                 anchors.left: parent.left
                 anchors.right: parent.right
-                height: addressesListView.currentIndex < 0 ? 0 : panes.height * 0.25
+                height: panes.height * 0.25
                 color: "aquamarine"
 
-                ListView {
-                    id: placesListView
+                //TODO place infos
+                RowLayout {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: goButton.top
-                    spacing: 5
-                    clip: true
 
-                    model: visualModel
+                    TextEdit {
+                        Layout.margins: 5
+                        Layout.fillWidth: true
+                        text: "Phone: " + currentPlace.primaryPhone
+                        readOnly: true
+                        wrapMode: Text.WordWrap
+                        selectByMouse: true
+                        font.bold: true
+                    }
+
+                    RoundButton {
+                        Layout.margins: 5
+                        Layout.alignment: Qt.AlignRight
+                        id: goToButton
+                        text: ">"
+
+                        onClicked: {
+                            //TODO
+                        }
+                    }
                 }
 
                 Button {
@@ -313,7 +229,7 @@ Page {
                 Map {
                     anchors.fill: parent
                     id: map
-                    plugin: Plugin { name: "osm" }
+                    plugin: mapPlugin
                     zoomLevel: defaultZoom
 
                     MapQuickItem {
@@ -332,14 +248,29 @@ Page {
 
                     MapItemView {
                         id: mapItemView
-                        model: geocodeModel
+                        model: placeSearchModel
                         //autoFitViewport: true
                         delegate: MapQuickItem {
                             id: point
-                            sourceItem: Rectangle { width: 14; height: 14; color: "magenta"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
+                            sourceItem: Rectangle {
+                                width: 30
+                                height: width
+                                color: "magenta"
+                                border.width: 2
+                                border.color: "white"
+                                smooth: true
+                                radius: width/2
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        focusOnPlace(place);
+                                    }
+                                }
+                            }
                             opacity: 1.0
                             anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
-                            coordinate: locationData.coordinate
+                            coordinate: place.location.coordinate
                         }
                     }
                 }
