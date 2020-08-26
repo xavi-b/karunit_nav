@@ -65,6 +65,7 @@ Page {
                 anchors.fill: parent
                 onClicked: {
                     searchPage.clear();
+                    searchPage.mapCenter = map.center;
                     mainStackView.push(searchPage, {}, StackView.Immediate);
                     searchPage.giveFocusToSearch();
                 }
@@ -99,7 +100,7 @@ Page {
         id: map
         anchors.fill: parent
         plugin: mapPlugin
-        zoomLevel: 20
+        zoomLevel: defaultZoom
 
         MapQuickItem {
             id: poiCurrent
@@ -118,7 +119,8 @@ Page {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        text: "C"
+        font.family: "Font Awesome 5 Free"
+        text: "\uf14e"
         font.pixelSize: Qt.application.font.pixelSize * 1.6
         onClicked: {
             //TODO
@@ -134,8 +136,8 @@ Page {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        text: "X"
-        font.pixelSize: Qt.application.font.pixelSize * 1.6
+        font.family: "Font Awesome 5 Free"
+        text: "\uf192"
         onClicked: {
             map.center = position;
         }

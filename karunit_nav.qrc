@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/karunit_nav">
         <file>qml/Main.qml</file>
-        <file>qml/DrivePage.qml</file>
         <file>qml/MainPage.qml</file>
         <file>qml/SearchPage.qml</file>
-        <file>qml/RoutePage.qml</file>
         <file>res/mapbox.json</file>
+        <file>qml/DrivePage.qml</file>
     </qresource>
 </RCC>

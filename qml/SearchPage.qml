@@ -7,9 +7,9 @@ import QtLocation 5.14
 import QtPositioning 5.14
 
 Page {
-    property var defaultZoom: 20
     property var position;
     property var currentIndexCoordinate;
+    property var mapCenter;
 
     onPositionChanged: {
         poiCurrent.coordinate = position;
@@ -17,6 +17,7 @@ Page {
 
     function giveFocusToSearch() {
         searchTextInput.forceActiveFocus();
+        map.center = mapCenter;
     }
 
     function clear() {
@@ -108,7 +109,7 @@ Page {
 
     function focusOnPlace(place) {
         map.center = place.location.coordinate;
-        map.zoomLevel = map.maximumZoomLevel;
+        map.zoomLevel = defaultZoom;
 
         currentIndexCoordinate = place.location.coordinate;
         if (!place.detailsFetched) {
@@ -284,8 +285,8 @@ Page {
                     anchors.rightMargin: 20
                     anchors.bottomMargin: 20
 
-                    text: "X"
-                    font.pixelSize: Qt.application.font.pixelSize * 1.6
+                    font.family: "Font Awesome 5 Free"
+                    text: "\uf192"
                     onClicked: {
                         map.center = position;
                     }

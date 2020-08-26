@@ -6,8 +6,10 @@ import QtPositioning 5.14
 Item {
     id: mainItem
 
-    property var portname: "/dev/pts/0"
+    property var port: 50000
+    property var host: "localhost"
     property string mapboxAccessToken
+    property var defaultZoom: 12
 
     signal call(phoneNumber: string);
 
@@ -31,7 +33,8 @@ Item {
         active: false
         name: "fake"
 
-        PluginParameter { name: "portname"; value: portname }
+        PluginParameter { name: "port"; value: port }
+        PluginParameter { name: "host"; value: host }
 
         Component.onCompleted: {
             console.log("PositionSource ready");
@@ -41,7 +44,6 @@ Item {
         onPositionChanged: {
             mainPage.position = src.position.coordinate;
             searchPage.position = src.position.coordinate;
-            routePage.position = src.position.coordinate;
             drivePage.position = src.position.coordinate;
         }
 
@@ -81,14 +83,10 @@ Item {
             console.log("test")
             console.log(latitude)
             console.log(longitude)
-            routePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
-            mainStackView.push(routePage, StackView.Immediate);
-            routePage.start();
+            drivePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
+            mainStackView.push(drivePage, StackView.Immediate);
+            drivePage.start();
         }
-    }
-
-    RoutePage {
-        id: routePage
     }
 
     DrivePage {
