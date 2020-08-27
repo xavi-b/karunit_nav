@@ -39,7 +39,12 @@ QWidget* KU_Nav_Plugin::createWidget()
 {
     this->widget = new GeoWidget;
     connect(this->widget, &GeoWidget::log, this->getPluginConnector(), &KU::PLUGIN::PluginConnector::log);
-    //TODO connect(this->widget, &GeoWidget::call, );
+    connect(this->widget, &GeoWidget::call, this, [&](QString number)
+    {
+        QVariantMap data;
+        data["number"] = number;
+        this->getPluginConnector()->emitPluginChoiceSignal("dial", data);
+    });
     return this->widget;
 }
 

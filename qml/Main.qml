@@ -86,6 +86,7 @@ Item {
             drivePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
             mainStackView.push(drivePage, StackView.Immediate);
             drivePage.start();
+            drivePage.fitItems();
         }
     }
 

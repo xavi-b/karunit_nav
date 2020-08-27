@@ -123,7 +123,7 @@ Page {
         text: "\uf14e"
         font.pixelSize: Qt.application.font.pixelSize * 1.6
         onClicked: {
-            //TODO
+            map.bearing = 0;
         }
     }
 

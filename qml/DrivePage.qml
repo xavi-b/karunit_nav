@@ -1,5 +1,6 @@
 import QtQuick 2.5
 import QtQuick.Controls 2.14
+import QtQuick.Shapes 1.15
 import QtLocation 5.14
 import QtPositioning 5.14
 
@@ -7,12 +8,35 @@ Page {
     property var position;
     property var startCoordinate;
     property var destinationCoordinate;
-    property real deviationThreshold: 20.0 // meters
-    property real azimuthThreshold: 5.0 // degrees
-    property bool driving: false
+    property real deviationThreshold: 20.0; // meters
+    //property real azimuthThreshold: 5.0; // degrees
+    property bool driving: false;
+
+    // movement infos
+    property real timerInterval: 200;
+    property real previousTime;
+    property var calculatedPosition;
+    property var previousPosition;
+    property real speed;
+    property real direction: 0;
+
+    property int pathcounter: 0;
+    property int segmentcounter: 0;
+    property int last_segmentcounter: -1;
 
     onPositionChanged: {
+        previousPosition = QtPositioning.coordinate(poiCurrent.coordinate.latitude, poiCurrent.coordinate.longitude);
         poiCurrent.coordinate = position;
+
+        if(previousPosition && position) {
+            var currentTime = new Date().getTime();
+
+            speed = previousPosition.distanceTo(position) / (currentTime - previousTime);
+            direction = previousPosition.azimuthTo(position);
+        }
+
+        previousTime = new Date().getTime();
+
         if(driving) {
             map.center = position;
         } else {
@@ -23,16 +47,121 @@ Page {
         }
     }
 
+    Timer {
+        id: positionTimer
+        interval: timerInterval;
+        running: driving;
+        repeat: true
+        onTriggered: {
+            // https://gerrit.automotivelinux.org/gerrit/gitweb?p=apps/ondemandnavi.git;a=blob;f=app/navigation.qml;hb=HEAD
+
+            if (!routeModel.get(0))
+                return;
+
+            if(pathcounter <= routeModel.get(0).path.length - 1){
+                // calculate distance
+                var next_distance = calculatedPosition.distanceTo(routeModel.get(0).path[pathcounter]);
+
+                // calculate direction
+                var next_direction = calculatedPosition.azimuthTo(routeModel.get(0).path[pathcounter]);
+
+                // calculate next cross distance
+                var next_cross_distance = calculatedPosition.distanceTo(routeModel.get(0).segments[segmentcounter].path[0]);
+
+                // map rotateAnimation cntrol
+                var is_rotating = 0;
+                var cur_direction = direction;
+
+                // check is_rotating
+                if(cur_direction > next_direction){
+                    is_rotating = cur_direction - next_direction;
+                }else{
+                    is_rotating = next_direction - cur_direction;
+                }
+
+                if(is_rotating > 180){
+                    is_rotating = 360 - is_rotating;
+                }
+
+                var car_moving_distance = 0;
+                // rotation angle case
+                if(is_rotating > 180){
+                    // driving stop hard turn
+                    car_moving_distance = 0;
+                } else if(is_rotating > 90){
+                    // driving stop normal turn
+                    car_moving_distance = 0;
+                } else if(is_rotating > 60){
+                    // driving slow speed normal turn
+                    car_moving_distance = (speed * timerInterval) * 0.3;
+                } else if(is_rotating > 30){
+                    // driving half speed soft turn
+                    car_moving_distance = (speed * timerInterval) * 0.5;
+                } else {
+                    // driving nomal speed soft turn
+                    car_moving_distance = speed * timerInterval;
+                }
+
+                direction = next_direction;
+
+                // set next coordidnate
+                if(next_distance < (car_moving_distance * 1.5))
+                {
+                    calculatedPosition = routeModel.get(0).path[pathcounter]
+                    if(pathcounter < routeModel.get(0).path.length - 1){
+                        pathcounter++
+                    }
+                    else
+                    {
+                        // Arrive at your destination
+                        driving = false;
+                        //TODO tell user
+                    }
+                }else{
+                    var coordinate = calculatedPosition.atDistanceAndAzimuth(car_moving_distance, next_direction);
+                    calculatedPosition = QtPositioning.coordinate(coordinate.latitude, coordinate.longitude);
+                }
+
+                //map.center = calculatedPosition
+                map.bearing = direction;
+
+                // report a new instruction if current position matches with the head position of the segment
+                if(segmentcounter <= routeModel.get(0).segments.length - 1){
+                    if(next_cross_distance < 2){
+                        if(segmentcounter < routeModel.get(0).segments.length - 1){
+                            segmentcounter++
+                        }
+                    }else{
+                        if(next_cross_distance <= 330 && last_segmentcounter != segmentcounter) {
+                            last_segmentcounter = segmentcounter
+                            console.log("Instruction: " + routeModel.get(0).segments[segmentcounter].maneuver.instructionText);
+                            //TODO tell user
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function fitItems() {
+        map.fitViewportToMapItems();
+    }
+
     function start() {
         console.log("start()");
-        startCoordinate = QtPositioning.coordinate(position.latitude, position.longitude, position.altitude);
+        startCoordinate = QtPositioning.coordinate(position.latitude, position.longitude);
+        calculatedPosition = QtPositioning.coordinate(position.latitude, position.longitude);
         routeQuery.clearWaypoints();
-        console.log(JSON.stringify(startCoordinate));
-        console.log(JSON.stringify(destinationCoordinate));
         routeQuery.addWaypoint(startCoordinate);
         routeQuery.addWaypoint(destinationCoordinate);
         routeModel.update();
-        map.fitViewportToMapItems();
+        pathcounter = 0
+        segmentcounter = 0
+    }
+
+    function stopDriving() {
+        driving = false;
+        map.bearing = 0;
     }
 
     function hasDeviated() {
@@ -42,13 +171,14 @@ Page {
             }
             return Math.abs(startCoordinate.distanceTo(position)) > deviationThreshold;
         } else {
-            //TODO
-            return false;
+            if(!calculatedPosition) {
+                return false;
+            }
+            return Math.abs(calculatedPosition.distanceTo(position)) > deviationThreshold;
         }
     }
 
-    function formatTime(sec)
-    {
+    function formatTime(sec) {
         var value = sec
         var seconds = value % 60
         value /= 60
@@ -62,8 +192,7 @@ Page {
         return value
     }
 
-    function formatDistance(meters)
-    {
+    function formatDistance(meters) {
         var dist = Math.round(meters)
         if (dist > 1000 ){
             if (dist > 100000){
@@ -120,6 +249,8 @@ Page {
                 console.log("totalTravelTime: " + totalTravelTime);
                 console.log("totalDistance: " + totalDistance);
 
+                //TODO display infos
+
                 if (routeModel.count > 0) {
                     /*for (var i = 0; i < routeModel.get(0).segments.length; i++) {
                         routeInfoModel.append({
@@ -159,9 +290,33 @@ Page {
         }
 
         MapQuickItem {
+            id: poiCalculated
+            sourceItem: Shape {
+                width: 14
+                height: 20
+                ShapePath {
+                    fillColor: "#cccccc"
+                    strokeWidth: 2
+                    strokeColor: "white"
+                    strokeStyle: ShapePath.SolidLine
+                    joinStyle: ShapePath.RoundJoin
+                    startX: 7; startY: 0
+                    PathLine { x: 14; y: 20 }
+                    PathLine { x: 0; y: 20 }
+                    PathLine { x: 7; y: 0 }
+                }
+            }
+
+            coordinate: calculatedPosition ? calculatedPosition : QtPositioning.coordinate();
+            opacity: 1.0
+            anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
+            visible: driving
+        }
+
+        MapQuickItem {
             id: poiEnd
-            sourceItem: Rectangle { width: 14; height: 14; color: "#1ee425"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-            coordinate: destinationCoordinate
+            sourceItem: Rectangle { width: 14; height: 14; color: "#1ee425"; border.width: 2; border.color: "white";  radius: 7 }
+            coordinate: destinationCoordinate ? destinationCoordinate : QtPositioning.coordinate();
             opacity: 1.0
             anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
         }
@@ -180,7 +335,9 @@ Page {
         text: driving ? "\uf057" : "\uf144"
         onClicked: {
             driving = !driving;
-            //TODO
+            if(!driving) {
+                stopDriving();
+            }
         }
     }
 

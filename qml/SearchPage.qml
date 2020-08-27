@@ -108,10 +108,11 @@ Page {
     property var currentPlace: Place;
 
     function focusOnPlace(place) {
+        console.log("focusOnPlace");
         map.center = place.location.coordinate;
         map.zoomLevel = defaultZoom;
 
-        currentIndexCoordinate = place.location.coordinate;
+        currentIndexCoordinate = QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude);
         if (!place.detailsFetched) {
             place.getDetails();
             currentPlace = place;
@@ -151,13 +152,13 @@ Page {
                                 text: title + "<br>" + place.location.address.text
                                 wrapMode: Text.WordWrap
                                 font.bold: true
+                            }
+                        }
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: {
-                                        focusOnPlace(place);
-                                    }
-                                }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                focusOnPlace(place);
                             }
                         }
                     }
@@ -190,7 +191,7 @@ Page {
                     TextEdit {
                         Layout.margins: 5
                         Layout.fillWidth: true
-                        text: "Phone: " + currentPlace.primaryPhone
+                        text: "Phone: " + (currentPlace.primaryPhone ? currentPlace.primaryPhone : "NONE")
                         readOnly: true
                         wrapMode: Text.WordWrap
                         selectByMouse: true
@@ -200,11 +201,15 @@ Page {
                     RoundButton {
                         Layout.margins: 5
                         Layout.alignment: Qt.AlignRight
-                        id: goToButton
-                        text: ">"
+                        id: callButton
+                        visible: currentPlace.primaryPhone ? true : false
 
+                        font.family: "Font Awesome 5 Free"
+                        text: "\uf192"
                         onClicked: {
-                            //TODO
+                            if(currentPlace.primaryPhone) {
+                                mainItem.call(currentPlace.primaryPhone);
+                            }
                         }
                     }
                 }
