@@ -106,6 +106,8 @@ Page {
     }
 
     property var currentPlace: Place;
+    property var totalTravelTime;
+    property var totalDistance;
 
     function focusOnPlace(place) {
         console.log("focusOnPlace");
@@ -115,7 +117,33 @@ Page {
         currentIndexCoordinate = QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude);
         if (!place.detailsFetched) {
             place.getDetails();
-            currentPlace = place;
+        }
+        currentPlace = place;
+        routeQuery.clearWaypoints();
+        routeQuery.addWaypoint(position);
+        routeQuery.addWaypoint(currentIndexCoordinate);
+        routeModel.update();
+    }
+
+    RouteQuery {
+        id: routeQuery
+        travelModes: RouteQuery.CarTravel
+        routeOptimizations: RouteQuery.FastestRoute
+    }
+
+    RouteModel {
+        id: routeModel
+        plugin: geoPlugin
+        query: routeQuery
+        autoUpdate: false
+        onStatusChanged: {
+            if(status == RouteModel.Error) {
+                console.log("error: " + errorString);
+            }
+            if(status == RouteModel.Ready) {
+                totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
+                totalDistance = routeModel.count == 0 ? "" : formatDistance(routeModel.get(0).distance);
+            }
         }
     }
 
@@ -181,36 +209,45 @@ Page {
                 height: panes.height * 0.25
                 color: "aquamarine"
 
-                //TODO place infos
-                RowLayout {
+                Column {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: goButton.top
 
-                    TextEdit {
-                        Layout.margins: 5
-                        Layout.fillWidth: true
-                        text: "Phone: " + (currentPlace.primaryPhone ? currentPlace.primaryPhone : "NONE")
-                        readOnly: true
-                        wrapMode: Text.WordWrap
-                        selectByMouse: true
-                        font.bold: true
-                    }
+                    RowLayout {
+                        Text {
+                            Layout.margins: 5
+                            Layout.fillWidth: true
+                            text: "Phone: " + (currentPlace.primaryPhone ? currentPlace.primaryPhone : "NONE")
+                            wrapMode: Text.WordWrap
+                            font.bold: true
+                        }
 
-                    RoundButton {
-                        Layout.margins: 5
-                        Layout.alignment: Qt.AlignRight
-                        id: callButton
-                        visible: currentPlace.primaryPhone ? true : false
+                        RoundButton {
+                            Layout.margins: 5
+                            Layout.alignment: Qt.AlignRight
+                            id: callButton
+                            visible: currentPlace.primaryPhone ? true : false
 
-                        font.family: "Font Awesome 5 Free"
-                        text: "\uf192"
-                        onClicked: {
-                            if(currentPlace.primaryPhone) {
-                                mainItem.call(currentPlace.primaryPhone);
+                            font.family: "Font Awesome 5 Free"
+                            text: "\uf192"
+                            onClicked: {
+                                if(currentPlace.primaryPhone) {
+                                    mainItem.call(currentPlace.primaryPhone);
+                                }
                             }
                         }
+                    }
+
+                    Text {
+                        padding: 5
+                        text: totalTravelTime
+                    }
+
+                    Text {
+                        padding: 5
+                        text: totalDistance
                     }
                 }
 

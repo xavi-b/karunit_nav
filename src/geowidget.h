@@ -16,6 +16,7 @@ public:
 signals:
     void log(QString const& log);
     void call(QString const& phoneNumber);
+    void tell(QString const& instruction, QString const& distance);
 
 };
 

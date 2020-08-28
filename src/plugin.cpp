@@ -45,6 +45,12 @@ QWidget* KU_Nav_Plugin::createWidget()
         data["number"] = number;
         this->getPluginConnector()->emitPluginChoiceSignal("dial", data);
     });
+    connect(this->widget, &GeoWidget::tell, this, [&](QString const& instruction, QString const& distance)
+    {
+        QVariantMap data;
+        data["text"] = instruction + " " + distance;
+        this->getPluginConnector()->emitPluginChoiceSignal("tell", data);
+    });
     return this->widget;
 }
 

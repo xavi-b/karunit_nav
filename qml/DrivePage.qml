@@ -39,6 +39,10 @@ Page {
 
         if(driving) {
             map.center = position;
+            if(hasDeviated()) {
+                console.log("driving && hasDeviated()");
+                start();
+            }
         } else {
             if(hasDeviated()) {
                 console.log("!driving && hasDeviated()");
@@ -114,8 +118,7 @@ Page {
                     else
                     {
                         // Arrive at your destination
-                        driving = false;
-                        //TODO tell user
+                        stopDriving();
                     }
                 }else{
                     var coordinate = calculatedPosition.atDistanceAndAzimuth(car_moving_distance, next_direction);
@@ -134,8 +137,11 @@ Page {
                     }else{
                         if(next_cross_distance <= 330 && last_segmentcounter != segmentcounter) {
                             last_segmentcounter = segmentcounter
-                            console.log("Instruction: " + routeModel.get(0).segments[segmentcounter].maneuver.instructionText);
-                            //TODO tell user
+                            var instruction = routeModel.get(0).segments[segmentcounter].maneuver.instructionText;
+                            var distance = formatDistance(routeModel.get(0).segments[segmentcounter].maneuver.distanceToNextInstruction);
+                            console.log("Instruction: " + instruction);
+                            console.log("Distance: " +  distance);
+                            tell(instruction, distance);
                         }
                     }
                 }
@@ -159,9 +165,16 @@ Page {
         segmentcounter = 0
     }
 
+    function startDriving() {
+        driving = true;
+        map.zoomLevel = 20;
+        map.tilt = 60;
+    }
+
     function stopDriving() {
         driving = false;
         map.bearing = 0;
+        map.tilt = 0;
     }
 
     function hasDeviated() {
@@ -178,38 +191,6 @@ Page {
         }
     }
 
-    function formatTime(sec) {
-        var value = sec
-        var seconds = value % 60
-        value /= 60
-        value = (value > 1) ? Math.round(value) : 0
-        var minutes = value % 60
-        value /= 60
-        value = (value > 1) ? Math.round(value) : 0
-        var hours = value
-        if (hours > 0) value = hours + "h:"+ minutes + "m"
-        else value = minutes + "min"
-        return value
-    }
-
-    function formatDistance(meters) {
-        var dist = Math.round(meters)
-        if (dist > 1000 ){
-            if (dist > 100000){
-                dist = Math.round(dist / 1000)
-            }
-            else{
-                dist = Math.round(dist / 100)
-                dist = dist / 10
-            }
-            dist = dist + " km"
-        }
-        else{
-            dist = dist + " m"
-        }
-        return dist
-    }
-
     header: ToolBar {
         contentHeight: goBackButton.implicitHeight
 
@@ -221,6 +202,7 @@ Page {
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: {
                 if (mainStackView.depth > 1) {
+                    stopDriving();
                     mainStackView.pop(StackView.Immediate);
                 }
             }
@@ -243,22 +225,11 @@ Page {
                 console.log("error: " + errorString);
             }
             if(status == RouteModel.Ready) {
-                var totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
-                var totalDistance = routeModel.count == 0 ? "" : formatDistance(routeModel.get(0).distance);
+                var totalTravelTime = routeModel.count == 0 ? 0 : routeModel.get(0).travelTime;
+                var totalDistance = routeModel.count == 0 ? 0 : routeModel.get(0).distance;
 
                 console.log("totalTravelTime: " + totalTravelTime);
                 console.log("totalDistance: " + totalDistance);
-
-                //TODO display infos
-
-                if (routeModel.count > 0) {
-                    /*for (var i = 0; i < routeModel.get(0).segments.length; i++) {
-                        routeInfoModel.append({
-                            "instruction": routeModel.get(0).segments[i].maneuver.instructionText,
-                             "distance": Helper.formatDistance(routeModel.get(0).segments[i].maneuver.distanceToNextInstruction)
-                        });
-                    }*/
-                }
             }
         }
     }
@@ -337,6 +308,8 @@ Page {
             driving = !driving;
             if(!driving) {
                 stopDriving();
+            } else {
+                startDriving();
             }
         }
     }

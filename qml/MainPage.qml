@@ -28,6 +28,7 @@ Page {
                 drawer.height = mainItem.height;
                 drawer.open();
             }
+            visible: false //TODO
         }
 
         TextInput {
