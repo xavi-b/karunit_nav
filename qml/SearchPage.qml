@@ -1,7 +1,6 @@
 import QtQuick 2.5
 import QtQuick.Controls 2.4
 import QtQuick.Layouts 1.11
-import QtQuick.XmlListModel 2.11
 import QtQml.Models 2.1
 import QtLocation 5.5
 import QtPositioning 5.5
