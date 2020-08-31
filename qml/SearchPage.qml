@@ -1,10 +1,10 @@
-import QtQuick 2.14
-import QtQuick.Controls 2.14
-import QtQuick.Layouts 1.14
-import QtQuick.XmlListModel 2.12
+import QtQuick 2.5
+import QtQuick.Controls 2.4
+import QtQuick.Layouts 1.11
+import QtQuick.XmlListModel 2.11
 import QtQml.Models 2.1
-import QtLocation 5.14
-import QtPositioning 5.14
+import QtLocation 5.5
+import QtPositioning 5.5
 
 Page {
     property var position;
@@ -25,8 +25,8 @@ Page {
         placeSearchModel.reset();
     }
 
-    signal call(phoneNumber: string);
-    signal goTo(latitude: double, longitude: double);
+    signal call(string phoneNumber);
+    signal goTo(double latitude, double longitude);
 
     header: ToolBar {
         contentHeight: goBackButton.implicitHeight
@@ -241,12 +241,12 @@ Page {
                     }
 
                     Text {
-                        padding: 5
+                        //TODO padding: 5
                         text: totalTravelTime
                     }
 
                     Text {
-                        padding: 5
+                        //TODO padding: 5
                         text: totalDistance
                     }
                 }

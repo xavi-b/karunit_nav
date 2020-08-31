@@ -1,6 +1,7 @@
 import QtQuick 2.5
-import QtQuick.Controls 2.14
-import QtLocation 5.14
+import QtQuick.Controls 2.4
+import QtLocation 5.5
+import QtPositioning 5.5
 
 Page {
     property var position;
