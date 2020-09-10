@@ -67,10 +67,11 @@ Item {
         id: src
         updateInterval: 500
         active: false
-        name: "fake"
+        name: "gpsd"
+//        name: "fake"
         
-        PluginParameter { name: "port"; value: port }
-        PluginParameter { name: "host"; value: host }
+//        PluginParameter { name: "port"; value: port }
+//        PluginParameter { name: "host"; value: host }
 
         Component.onCompleted: {
             console.log("PositionSource ready");
