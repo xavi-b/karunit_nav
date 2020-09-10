@@ -2,9 +2,43 @@ import QtQuick 2.5
 import QtQuick.Controls 2.4
 import QtLocation 5.5
 import QtPositioning 5.5
+import QtQuick.FreeVirtualKeyboard 1.0
 
 Item {
     id: mainItem
+
+    InputPanel {
+        id: inputPanel
+
+        z: 99
+        y: mainItem.height
+
+        btnTextFontFamily: "monospace"
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        states: State {
+            name: "visible"
+            when: Qt.inputMethod.visible
+            PropertyChanges {
+                target: inputPanel
+                y: mainItem.height - inputPanel.height
+            }
+        }
+        transitions: Transition {
+            from: ""
+            to: "visible"
+            reversible: true
+            ParallelAnimation {
+                NumberAnimation {
+                    properties: "y"
+                    duration: 150
+                    easing.type: Easing.InOutQuad
+                }
+            }
+        }
+    }
 
     property var port: 50000
     property var host: "localhost"
