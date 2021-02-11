@@ -4,8 +4,7 @@ import QtQuick.Shapes 1.11
 import QtLocation 5.5
 import QtPositioning 5.5
 
-Page {
-    property var position;
+Component {
     property var startCoordinate;
     property var destinationCoordinate;
     property real deviationThreshold: 20.0; // meters
@@ -26,19 +25,19 @@ Page {
 
     onPositionChanged: {
         previousPosition = QtPositioning.coordinate(poiCurrent.coordinate.latitude, poiCurrent.coordinate.longitude);
-        poiCurrent.coordinate = position;
+        poiCurrent.coordinate = positionSource.position.coordinate;
 
-        if(previousPosition && position) {
+        if(previousPosition && positionSource.position.coordinate) {
             var currentTime = new Date().getTime();
 
-            speed = previousPosition.distanceTo(position) / (currentTime - previousTime);
-            direction = previousPosition.azimuthTo(position);
+            speed = previousPosition.distanceTo(positionSource.position.coordinate) / (currentTime - previousTime);
+            direction = previousPosition.azimuthTo(positionSource.position.coordinate);
         }
 
         previousTime = new Date().getTime();
 
         if(driving) {
-            map.center = position;
+            map.center = positionSource.position.coordinate;
             if(hasDeviated()) {
                 console.log("driving && hasDeviated()");
                 start();
@@ -155,8 +154,8 @@ Page {
 
     function start() {
         console.log("start()");
-        startCoordinate = QtPositioning.coordinate(position.latitude, position.longitude);
-        calculatedPosition = QtPositioning.coordinate(position.latitude, position.longitude);
+        startCoordinate = QtPositioning.coordinate(positionSource.position.coordinate.latitude, positionSource.position.coordinate.longitude);
+        calculatedPosition = QtPositioning.coordinate(positionSource.position.coordinate.latitude, positionSource.position.coordinate.longitude);
         routeQuery.clearWaypoints();
         routeQuery.addWaypoint(startCoordinate);
         routeQuery.addWaypoint(destinationCoordinate);
@@ -182,30 +181,12 @@ Page {
             if(!startCoordinate) {
                 return false;
             }
-            return Math.abs(startCoordinate.distanceTo(position)) > deviationThreshold;
+            return Math.abs(startCoordinate.distanceTo(positionSource.position.coordinate)) > deviationThreshold;
         } else {
             if(!calculatedPosition) {
                 return false;
             }
-            return Math.abs(calculatedPosition.distanceTo(position)) > deviationThreshold;
-        }
-    }
-
-    header: ToolBar {
-        contentHeight: goBackButton.implicitHeight
-
-        ToolButton {
-            anchors.left: parent.left
-            id: goBackButton
-            text: "\u25C0"
-            visible: mainStackView.depth > 1
-            font.pixelSize: Qt.application.font.pixelSize * 1.6
-            onClicked: {
-                if (mainStackView.depth > 1) {
-                    stopDriving();
-                    mainStackView.pop(StackView.Immediate);
-                }
-            }
+            return Math.abs(calculatedPosition.distanceTo(positionSource.position.coordinate)) > deviationThreshold;
         }
     }
 
@@ -251,13 +232,6 @@ Page {
                 smooth: true
                 opacity: 0.8
             }
-        }
-
-        MapQuickItem {
-            id: poiCurrent
-            sourceItem: Rectangle { width: 14; height: 14; color: "#1e25e4"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-            opacity: 1.0
-            anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
         }
 
         MapQuickItem {
@@ -311,22 +285,6 @@ Page {
             } else {
                 startDriving();
             }
-        }
-    }
-
-    RoundButton {
-        id: centerOnPositionButton
-        width: 40
-        height: 40
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: 20
-        anchors.bottomMargin: 20
-
-        font.family: "Font Awesome 5 Free"
-        text: "\uf192"
-        onClicked: {
-            map.center = position;
         }
     }
 }

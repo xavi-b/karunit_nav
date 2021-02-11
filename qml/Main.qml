@@ -1,8 +1,10 @@
-import QtQuick 2.5
-import QtQuick.Controls 2.4
-import QtLocation 5.5
-import QtPositioning 5.5
+import QtQuick 2.15
+import QtLocation 5.15
+import QtPositioning 5.15
 import QtQuick.FreeVirtualKeyboard 1.0
+import QtQuick.Layouts 1.15
+import org.kde.kirigami 2.15 as Kirigami
+import QtQuick.Controls 2.15 as Controls
 
 Item {
     id: mainItem
@@ -48,41 +50,6 @@ Item {
     signal call(string phoneNumber);
     signal tell(string instruction, string distance);
 
-    function formatTime(sec) {
-        var value = sec
-        var seconds = value % 60
-        value /= 60
-        value = (value > 1) ? Math.round(value) : 0
-        var minutes = value % 60
-        value /= 60
-        value = (value > 1) ? Math.round(value) : 0
-        var hours = value
-        if (hours > 0) {
-            if(minutes < 10) minutes = "0"+minutes;
-            value = hours + "h"+ minutes + "m"
-        }
-        else value = minutes + " min"
-        return value
-    }
-
-    function formatDistance(meters) {
-        var dist = Math.round(meters)
-        if (dist > 1000 ){
-            if (dist > 100000){
-                dist = Math.round(dist / 1000)
-            }
-            else{
-                dist = Math.round(dist / 100)
-                dist = dist / 10
-            }
-            dist = dist + " km"
-        }
-        else{
-            dist = dist + " m"
-        }
-        return dist
-    }
-
     Plugin {
         id: mapPlugin
         name: "mapboxgl"
@@ -98,24 +65,22 @@ Item {
     }
 
     PositionSource {
-        id: src
+        id: positionSource
         updateInterval: 500
         active: false
-        name: "gpsd"
-//        name: "fake"
+        //        name: "gpsd"
+        name: "fake"
         
-//        PluginParameter { name: "port"; value: port }
-//        PluginParameter { name: "host"; value: host }
+        PluginParameter { name: "port"; value: port }
+        PluginParameter { name: "host"; value: host }
 
         Component.onCompleted: {
             console.log("PositionSource ready");
-            src.start();
+            positionSource.start();
         }
 
         onPositionChanged: {
-            mainPage.position = src.position.coordinate;
-            searchPage.position = src.position.coordinate;
-            drivePage.position = src.position.coordinate;
+
         }
 
         onSourceErrorChanged: {
@@ -143,31 +108,35 @@ Item {
         }
     }
 
-    MainPage {
-        id: mainPage
-    }
-
     SearchPage {
         id: searchPage
-        onCall: call(phoneNumber);
-        onGoTo: function(latitude, longitude) {
-            console.log("goTo")
-            console.log(latitude)
-            console.log(longitude)
-            drivePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
-            mainStackView.push(drivePage, StackView.Immediate);
-            drivePage.start();
-            drivePage.fitItems();
-        }
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        width: parent.width / 3
+
+        //        onCall: call(phoneNumber);
+        //        onGoTo: function(latitude, longitude) {
+        //            console.log("goTo")
+        //            console.log(latitude)
+        //            console.log(longitude)
+        //            drivePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
+        //            mainStackView.push(drivePage, StackView.Immediate);
+        //            drivePage.start();
+        //            drivePage.fitItems();
+        //        }
     }
 
-    DrivePage {
-        id: drivePage
+    Driver {
+        id: driver
     }
 
-    StackView {
-        id: mainStackView
-        initialItem: mainPage
-        anchors.fill: parent
+    DrivingMap {
+        id: map
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.left: searchPage.right
+        plugin: mapPlugin
     }
 }

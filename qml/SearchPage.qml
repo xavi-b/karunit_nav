@@ -1,87 +1,15 @@
-import QtQuick 2.5
-import QtQuick.Controls 2.4
-import QtQuick.Layouts 1.11
-import QtQml.Models 2.1
-import QtLocation 5.5
-import QtPositioning 5.5
+import QtQuick 2.15
+import QtLocation 5.15
+import QtPositioning 5.15
+import QtQuick.FreeVirtualKeyboard 1.0
+import QtQuick.Layouts 1.15
+import org.kde.kirigami 2.15 as Kirigami
+import QtQuick.Controls 2.15 as Controls
 
-Page {
-    property var position;
-    property var currentIndexCoordinate;
-    property var mapCenter;
+Kirigami.PageRow {
+    id: pageRow
 
-    onPositionChanged: {
-        poiCurrent.coordinate = position;
-    }
-
-    function giveFocusToSearch() {
-        searchTextInput.forceActiveFocus();
-        map.center = mapCenter;
-    }
-
-    function clear() {
-        searchTextInput.clear();
-        placeSearchModel.reset();
-    }
-
-    signal call(string phoneNumber);
-    signal goTo(double latitude, double longitude);
-
-    header: ToolBar {
-        contentHeight: goBackButton.implicitHeight
-
-        ToolButton {
-            anchors.left: parent.left
-            id: goBackButton
-            text: "\u25C0"
-            visible: mainStackView.depth > 1
-            font.pixelSize: Qt.application.font.pixelSize * 1.6
-            onClicked: {
-                if (mainStackView.depth > 1) {
-                    mainStackView.pop(StackView.Immediate);
-                }
-            }
-        }
-
-        TextInput {
-            id: searchTextInput
-            anchors.left: goBackButton.right
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-
-            verticalAlignment: Qt.AlignVCenter
-
-            Text {
-                id: searchPlaceHolderText
-                anchors.fill: parent
-                verticalAlignment: Qt.AlignVCenter
-
-                text: qsTr("Search for an address...")
-                color: "#aaa"
-                visible: !searchTextInput.text
-            }
-
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottomMargin: 5
-
-                height: 1
-                color: searchPlaceHolderText.color
-            }
-
-            onEditingFinished: {
-                placeSearchModel.searchTerm = searchTextInput.text;
-                placeSearchModel.searchArea = QtPositioning.circle(position);
-                //placeSearchModel.searchArea = map.visibleArea;
-                placeSearchModel.update();
-            }
-        }
-    }
+    property alias model: placeSearchModel
 
     PlaceSearchModel {
         id: placeSearchModel
@@ -92,9 +20,9 @@ Page {
         onStatusChanged: {
             switch (status) {
             case PlaceSearchModel.Ready:
-//                poiCurrent.visible = false;
-//                map.fitViewportToVisibleMapItems();
-//                poiCurrent.visible = true;
+                //                poiCurrent.visible = false;
+                //                map.fitViewportToVisibleMapItems();
+                //                poiCurrent.visible = true;
                 break;
             case PlaceSearchModel.Error:
                 console.log(errorString());
@@ -104,236 +32,113 @@ Page {
 
     }
 
-    property var currentPlace: Place;
-    property var totalTravelTime;
-    property var totalDistance;
+    initialPage: Kirigami.ScrollablePage {
+        titleDelegate: Kirigami.SearchField {
+            id: searchField
+            Layout.topMargin: Kirigami.Units.smallSpacing
+            Layout.bottomMargin: Kirigami.Units.smallSpacing
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            onTextChanged: {
+                if(searchField.text == "") {
+                    placeSearchModel.reset();
+                    return;
+                }
 
-    function focusOnPlace(place) {
-        console.log("focusOnPlace");
-        map.center = place.location.coordinate;
-        map.zoomLevel = defaultZoom;
-
-        currentIndexCoordinate = QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude);
-        if (!place.detailsFetched) {
-            place.getDetails();
-        }
-        currentPlace = place;
-        routeQuery.clearWaypoints();
-        routeQuery.addWaypoint(position);
-        routeQuery.addWaypoint(currentIndexCoordinate);
-        routeModel.update();
-    }
-
-    RouteQuery {
-        id: routeQuery
-        travelModes: RouteQuery.CarTravel
-        routeOptimizations: RouteQuery.FastestRoute
-    }
-
-    RouteModel {
-        id: routeModel
-        plugin: geoPlugin
-        query: routeQuery
-        autoUpdate: false
-        onStatusChanged: {
-            if(status == RouteModel.Error) {
-                console.log("error: " + errorString);
+                placeSearchModel.searchTerm = searchField.text;
+                placeSearchModel.searchArea = QtPositioning.circle(positionSource.position.coordinate);
+                //placeSearchModel.searchArea = map.visibleArea;
+                placeSearchModel.update();
             }
-            if(status == RouteModel.Ready) {
-                totalTravelTime = routeModel.count == 0 ? "" : formatTime(routeModel.get(0).travelTime);
-                totalDistance = routeModel.count == 0 ? "" : formatDistance(routeModel.get(0).distance);
-            }
-        }
-    }
-
-    Item {
-        id: panes
-        anchors.fill: parent
-
-        Item {
-            id: sidePane
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            width: parent.width * 0.33
-
-            ListView {
-                id: addressesListView
-                anchors.fill: parent
-                spacing: 5
-
-                model: placeSearchModel
-                delegate: RowLayout {
-                    Rectangle {
-                        color: "lightgrey"
-                        width: addressesListView.width
-                        height: childrenRect.height
-
-                        RowLayout {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-
-                            Text {
-                                Layout.margins: 5
-                                Layout.fillWidth: true
-                                text: title + "<br>" + place.location.address.text
-                                wrapMode: Text.WordWrap
-                                font.bold: true
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                focusOnPlace(place);
-                            }
-                        }
+            KeyNavigation.tab: listView
+            rightActions: [
+                Kirigami.Action {
+                    icon.name: "edit-clear"
+                    visible: searchField.text !== ""
+                    onTriggered: {
+                        searchField.text = ""
+                        searchField.accepted()
                     }
                 }
+            ]
+
+        }
+
+        supportsRefreshing: true
+        onRefreshingChanged: {
+            if (refreshing) {
+                myModel.refresh();
             }
         }
 
-        Item {
-            id: infoPane
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            anchors.left: sidePane.right
-
-            Rectangle {
-                id: infoRectangle
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: panes.height * 0.25
-                color: "aquamarine"
-
-                Column {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: goButton.top
-
-                    RowLayout {
-                        Text {
-                            Layout.margins: 5
-                            Layout.fillWidth: true
-                            text: "Phone: " + (currentPlace.primaryPhone ? currentPlace.primaryPhone : "NONE")
-                            wrapMode: Text.WordWrap
-                            font.bold: true
-                        }
-
-                        RoundButton {
-                            Layout.margins: 5
-                            Layout.alignment: Qt.AlignRight
-                            id: callButton
-                            visible: currentPlace.primaryPhone ? true : false
-
-                            font.family: "Font Awesome 5 Free"
-                            text: "\uf192"
-                            onClicked: {
-                                if(currentPlace.primaryPhone) {
-                                    mainItem.call(currentPlace.primaryPhone);
-                                }
-                            }
-                        }
-                    }
-
-                    Text {
-                        //TODO padding: 5
-                        text: totalTravelTime
-                    }
-
-                    Text {
-                        //TODO padding: 5
-                        text: totalDistance
-                    }
-                }
-
-                Button {
-                    id: goButton
-                    text: "Go"
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    onClicked: {
-                        searchPage.goTo(currentIndexCoordinate.latitude, currentIndexCoordinate.longitude);
-                    }
+        ListView {
+            id: addressesListView
+            Kirigami.PlaceholderMessage {
+                anchors.centerIn: parent
+                width: parent.width - (Kirigami.Units.largeSpacing * 4)
+                visible: addressesListView.count === 0
+                text: "No data found"
+                helpfulAction: Kirigami.Action {
+                    text: "Load data"
                 }
             }
 
-            Item {
-                anchors.top: infoRectangle.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-
-                Map {
-                    anchors.fill: parent
-                    id: map
-                    plugin: mapPlugin
-                    zoomLevel: defaultZoom
-
-                    MapQuickItem {
-                        id: poiCurrent
-                        sourceItem: Rectangle { width: 14; height: 14; color: "#1e25e4"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-                        opacity: 1.0
-                        anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
-                    }
-
-                    MapQuickItem {
-                        id: poiSelected
-                        sourceItem: Rectangle { width: 14; height: 14; color: "red"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
-                        opacity: 1.0
-                        anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
-                    }
-
-                    MapItemView {
-                        id: mapItemView
-                        model: placeSearchModel
-                        //autoFitViewport: true
-                        delegate: MapQuickItem {
-                            id: point
-                            sourceItem: Rectangle {
-                                width: 30
-                                height: width
-                                color: "magenta"
-                                border.width: 2
-                                border.color: "white"
-                                smooth: true
-                                radius: width/2
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: {
-                                        focusOnPlace(place);
-                                    }
-                                }
-                            }
-                            opacity: 1.0
-                            anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
-                            coordinate: place.location.coordinate
-                        }
-                    }
-                }
-
-                RoundButton {
-                    id: centerOnPositionButton
-                    width: 40
-                    height: 40
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.rightMargin: 20
-                    anchors.bottomMargin: 20
-
-                    font.family: "Font Awesome 5 Free"
-                    text: "\uf192"
-                    onClicked: {
-                        map.center = position;
-                    }
+            section {
+                property: "sec"
+                delegate: Kirigami.ListSectionHeader {
+                    text: "Section " + (parseInt(section) + 1)
                 }
             }
+
+            delegate: Kirigami.SwipeListItem {
+                id: listItem
+                contentItem: RowLayout {
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        height: Math.max(implicitHeight, Kirigami.Units.iconSizes.smallMedium)
+                        text: title + "<br>" + place.location.address.text
+                        color: listItem.checked || (listItem.pressed && !listItem.checked && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
+                    }
+
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        height: Math.max(implicitHeight, Kirigami.Units.iconSizes.smallMedium)
+                        text: "Phone: " + (place.primaryPhone ? place.primaryPhone : "NONE")
+                        color: listItem.checked || (listItem.pressed && !listItem.checked && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
+                    }
+                }
+                actions: [
+                    Kirigami.Action {
+                        iconName: "call"
+                        id: callButton
+                        visible: place.primaryPhone ? true : false
+                        //font.family: "Font Awesome 5 Free"
+                        text: "\uf192"
+                        onTriggered: {
+                            if(place.primaryPhone) {
+                                call(place.primaryPhone);
+                            }
+                        }
+                    },
+                    Kirigami.Action {
+                        iconName: "go"
+                        id: goButton
+                        //font.family: "Font Awesome 5 Free"
+                        text: "Go"
+                        onTriggered: {
+                            //TODO driver.goTo(place.location.coordinate.latitude, place.location.coordinate.longitude);
+                        }
+                    },
+                    Kirigami.Action {
+                        iconName: "focus"
+                        text: "Action 2"
+                        onTriggered: {
+                            map.focusOnPlace(place);
+                        }
+                    }]
+            }
+
+            model: placeSearchModel // TODO section + recents + saved
         }
     }
 }
-
