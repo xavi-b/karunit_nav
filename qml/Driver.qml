@@ -4,7 +4,6 @@ import QtPositioning 5.15
 import "qrc:/karunit_nav/qml/utils.js" as Utils
 
 Timer {
-    id: positionTimer
     property var startCoordinate;
     property var currentCoordinate;
     property var previousCoordinate;
@@ -101,6 +100,7 @@ Timer {
 
             //map.center = calculatedPosition
             map.bearing = direction;
+            map.center = calculatedCoordinate;
 
             // report a new instruction if current position matches with the head position of the segment
             if(segmentcounter <= routeModel.get(0).segments.length - 1){
@@ -159,7 +159,6 @@ Timer {
         previousTime = new Date().getTime();
 
         if(driving) {
-            map.center = currentCoordinate;
             if(hasDeviated()) {
                 console.log("driving && hasDeviated()");
                 start();

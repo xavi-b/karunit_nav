@@ -26,6 +26,22 @@ Map {
         }
     }
 
+    Behavior on center {
+      CoordinateAnimation {
+        duration: driver.timerInterval
+        easing.type: Easing.InOutQuad
+       }
+    }
+
+    Behavior on bearing {
+        RotationAnimation {
+            id: rot_anim
+            direction: RotationAnimation.Shortest
+            easing.type: Easing.Linear
+            duration: driver.timerInterval
+        }
+    }
+
     MapQuickItem {
         id: poiCurrent
         sourceItem: Rectangle { width: 14; height: 14; color: "#1e25e4"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
