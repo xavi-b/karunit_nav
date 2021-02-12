@@ -1,5 +1,6 @@
 DISTFILES += \ \
-    $$PWD/DrivePage.qml \
+    $$PWD/Driver.qml \
+    $$PWD/DrivingMap.qml \
     $$PWD/Main.qml \
-    $$PWD/MainPage.qml \
-    $$PWD/SearchPage.qml
+    $$PWD/SearchPage.qml \
+    $$PWD/utils.js

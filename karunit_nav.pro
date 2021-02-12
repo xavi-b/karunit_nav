@@ -1,7 +1,7 @@
 TEMPLATE        = lib
 CONFIG         += plugin c++17
 DEFINES        += QT_DEPRECATED_WARNINGS
-QT             += widgets qml quick quickwidgets xml
+QT             += widgets qml quick quickwidgets xml Kirigami2
 TARGET          = karunit_nav_plugin
 DESTDIR         = $$PWD/../karunit/app/plugins
 
