@@ -46,8 +46,7 @@ Kirigami.PageRow {
                 }
 
                 placeSearchModel.searchTerm = searchField.text;
-                placeSearchModel.searchArea = QtPositioning.circle(positionSource.position.coordinate);
-                //placeSearchModel.searchArea = map.visibleArea;
+                placeSearchModel.searchArea = map.visibleArea;
                 placeSearchModel.update();
             }
             KeyNavigation.tab: listView
@@ -95,7 +94,7 @@ Kirigami.PageRow {
 
             delegate: Kirigami.SwipeListItem {
                 id: listItem
-                contentItem: RowLayout {
+                contentItem: ColumnLayout {
                     Controls.Label {
                         Layout.fillWidth: true
                         height: Math.max(implicitHeight, Kirigami.Units.iconSizes.smallMedium)
