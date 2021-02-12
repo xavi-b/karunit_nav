@@ -80,7 +80,7 @@ Item {
         }
 
         onPositionChanged: {
-
+            driver.update();
         }
 
         onSourceErrorChanged: {
@@ -114,17 +114,6 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         width: parent.width / 3
-
-        //        onCall: call(phoneNumber);
-        //        onGoTo: function(latitude, longitude) {
-        //            console.log("goTo")
-        //            console.log(latitude)
-        //            console.log(longitude)
-        //            drivePage.destinationCoordinate = QtPositioning.coordinate(latitude, longitude);
-        //            mainStackView.push(drivePage, StackView.Immediate);
-        //            drivePage.start();
-        //            drivePage.fitItems();
-        //        }
     }
 
     Driver {

@@ -5,6 +5,7 @@ import QtQuick.FreeVirtualKeyboard 1.0
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.15 as Kirigami
 import QtQuick.Controls 2.15
+import QtQuick.Shapes 1.15
 import "qrc:/karunit_nav/qml/utils.js" as Utils
 
 Map {
@@ -23,37 +24,6 @@ Map {
         if (!place.detailsFetched) {
             place.getDetails();
         }
-        currentPlace = place;
-        routeQuery.clearWaypoints();
-        routeQuery.addWaypoint(positionSource.position.coordinate);
-        routeQuery.addWaypoint(currentIndexCoordinate);
-        routeModel.update();
-    }
-
-    property var currentPlace: Place;
-    property var totalTravelTime;
-    property var totalDistance;
-
-    RouteQuery {
-        id: routeQuery
-        travelModes: RouteQuery.CarTravel
-        routeOptimizations: RouteQuery.FastestRoute
-    }
-
-    RouteModel {
-        id: routeModel
-        plugin: geoPlugin
-        query: routeQuery
-        autoUpdate: false
-        onStatusChanged: {
-            if(status == RouteModel.Error) {
-                console.log("error: " + errorString);
-            }
-            if(status == RouteModel.Ready) {
-                totalTravelTime = routeModel.count == 0 ? "" : Utils.formatTime(routeModel.get(0).travelTime);
-                totalDistance = routeModel.count == 0 ? "" : Utils.formatDistance(routeModel.get(0).distance);
-            }
-        }
     }
 
     MapQuickItem {
@@ -69,6 +39,51 @@ Map {
         sourceItem: Rectangle { width: 14; height: 14; color: "red"; border.width: 2; border.color: "white"; smooth: true; radius: 7 }
         opacity: 1.0
         anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
+    }
+
+    MapQuickItem {
+        id: poiCalculated
+        sourceItem: Shape {
+            width: 14
+            height: 20
+            ShapePath {
+                fillColor: "#cccccc"
+                strokeWidth: 2
+                strokeColor: "white"
+                strokeStyle: ShapePath.SolidLine
+                joinStyle: ShapePath.RoundJoin
+                startX: 7; startY: 0
+                PathLine { x: 14; y: 20 }
+                PathLine { x: 0; y: 20 }
+                PathLine { x: 7; y: 0 }
+            }
+        }
+
+        coordinate: driver.calculatedCoordinate ? driver.calculatedCoordinate : QtPositioning.coordinate();
+        opacity: 1.0
+        anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
+        visible: driver.driving
+    }
+
+    MapQuickItem {
+        id: poiEnd
+        sourceItem: Rectangle { width: 14; height: 14; color: "#1ee425"; border.width: 2; border.color: "white";  radius: 7 }
+        coordinate: driver.destinationCoordinate ? driver.destinationCoordinate : QtPositioning.coordinate();
+        opacity: 1.0
+        anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
+    }
+
+    MapItemView {
+        model: driver.routeModel
+        autoFitViewport: true
+        delegate: MapRoute {
+            id: route
+            route: routeData
+            line.color: "#95d5fc"
+            line.width: 5
+            smooth: true
+            opacity: 0.8
+        }
     }
 
     MapItemView {
@@ -96,6 +111,22 @@ Map {
             opacity: 1.0
             anchorPoint: Qt.point(sourceItem.width/2, sourceItem.height/2)
             coordinate: place.location.coordinate
+        }
+    }
+
+    RoundButton {
+        id: driveButton
+        width: 40
+        height: 40
+        anchors.right: parent.right
+        anchors.bottom: compassButton.top
+        anchors.rightMargin: 20
+        anchors.bottomMargin: 20
+
+        font.family: "Font Awesome 5 Free"
+        text: driver.driving ? "\uf057" : "\uf144"
+        onClicked: {
+            driver.updateDriving();
         }
     }
 

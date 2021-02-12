@@ -20,9 +20,9 @@ Kirigami.PageRow {
         onStatusChanged: {
             switch (status) {
             case PlaceSearchModel.Ready:
-                //                poiCurrent.visible = false;
-                //                map.fitViewportToVisibleMapItems();
-                //                poiCurrent.visible = true;
+                //poiCurrent.visible = false;
+                //map.fitViewportToVisibleMapItems();
+                //poiCurrent.visible = true;
                 break;
             case PlaceSearchModel.Error:
                 console.log(errorString());
@@ -67,7 +67,7 @@ Kirigami.PageRow {
         supportsRefreshing: true
         onRefreshingChanged: {
             if (refreshing) {
-                myModel.refresh();
+                placeSearchModel.update();
             }
         }
 
@@ -79,7 +79,10 @@ Kirigami.PageRow {
                 visible: addressesListView.count === 0
                 text: "No data found"
                 helpfulAction: Kirigami.Action {
-                    text: "Load data"
+                    text: "Refresh"
+                    onTriggered: {
+                        placeSearchModel.update();
+                    }
                 }
             }
 
@@ -126,7 +129,7 @@ Kirigami.PageRow {
                         //font.family: "Font Awesome 5 Free"
                         text: "Go"
                         onTriggered: {
-                            //TODO driver.goTo(place.location.coordinate.latitude, place.location.coordinate.longitude);
+                            driver.start(QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude));
                         }
                     },
                     Kirigami.Action {
