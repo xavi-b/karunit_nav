@@ -5,6 +5,7 @@ import QtQuick.FreeVirtualKeyboard 1.0
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.15 as Kirigami
 import QtQuick.Controls 2.15 as Controls
+import Qt.labs.settings 1.0
 
 Kirigami.PageRow {
     id: pageRow
@@ -44,17 +45,58 @@ Kirigami.PageRow {
         id: placeModel
 
         function update() {
-            //TODO favorites + recents
+            for (var i = placeModel.count; i >= 0; --i) {
+                if(placeModel.get(i).category === "Search") {
+                    datamodel.remove(i);
+                }
+            }
             placeSearchModel.update();
         }
 
-        function saveFavorites() {
-            //TODO
+        function appendIfNotExist(objectToAppend) {
+            for (var i = 0; i < placeModel.count; i++) {
+                var object = placeModel.get(i);
+                if(object.place == objectToAppend.place) {
+                    if (object.category === "Favorites" && objectToAppend.category === "Favorites") {
+                        return;
+                    }
+                    if (object.category === "Recents" && objectToAppend.category === "Recents") {
+                        placeModel.remove(i);
+                        break;
+                    }
+                }
+            }
+            placeModel.append(objectToAppend);
         }
 
-        function saveFavorites() {
-            //TODO
+        Component.onCompleted: {
+            if (placeSettings.datastore) {
+                var datamodel = JSON.parse(datastore);
+                for (var i = datamodel.length; i >= 0; --i)
+                    placeModel.append(datamodel[i]);
+            }
         }
+
+        Component.onDestruction: {
+            //TODO
+            var datamodel = [];
+            var recentsCount = 10;
+            for (var i = placeModel.count; i >= 0; --i) {
+                var object = placeModel.get(i);
+                if(object.category === "Favorites") {
+                    datamodel.push(object);
+                } else if(object.category === "Recents" && recentsCount > 0) {
+                    datamodel.push(object);
+                    --recentsCount;
+                }
+            }
+            placeSettings.datastore = JSON.stringify(datamodel);
+        }
+    }
+
+    Settings {
+        id: placeSettings
+        property string datastore
     }
 
     initialPage: Kirigami.ScrollablePage {
@@ -94,7 +136,7 @@ Kirigami.PageRow {
         supportsRefreshing: true
         onRefreshingChanged: {
             if (refreshing) {
-                placeSearchModel.update();
+                placeModel.update();
             }
         }
 
@@ -151,39 +193,35 @@ Kirigami.PageRow {
                     Kirigami.Action {
                         iconName: category === "Favorites" ? "fa-trash" : "fa-star"
                         id: favoriteButton
-                        text: "Go"
                         onTriggered: {
                             if(category === "Favorites") {
                                 placeModel.remove(index);
                             } else {
-                                //TODO check if not already added
-                                placeModel.append({
-                                                      title: title,
-                                                      place: place,
-                                                      distance: distance,
-                                                      category: "Favorites"
-                                                  });
+                                placeModel.appendIfNotExist({
+                                                                title: title,
+                                                                place: place,
+                                                                distance: distance,
+                                                                category: "Favorites"
+                                                            });
                             }
                         }
                     },
                     Kirigami.Action {
-                        iconName: "fa-phone"
+                        iconName: "fa-play-circle"
                         id: goButton
-                        text: "Go"
                         onTriggered: {
-                            //TODO check if not already added
-                            placeModel.append({
-                                                  title: title,
-                                                  place: place,
-                                                  distance: distance,
-                                                  category: "Recents"
-                                              });
+                            placeModel.appendIfNotExist({
+                                                            title: title,
+                                                            place: place,
+                                                            distance: distance,
+                                                            category: "Recents"
+                                                        });
                             driver.start(QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude));
                         }
                     },
                     Kirigami.Action {
                         iconName: "fa-dot-circle"
-                        text: "Action 2"
+                        id: focusButton
                         onTriggered: {
                             map.focusOnPlace(place);
                         }
