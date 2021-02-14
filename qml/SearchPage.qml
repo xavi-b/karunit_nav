@@ -20,21 +20,50 @@ Kirigami.PageRow {
         onStatusChanged: {
             switch (status) {
             case PlaceSearchModel.Ready:
+                console.log("onStatusChanged Ready");
                 //poiCurrent.visible = false;
                 //map.fitViewportToVisibleMapItems();
                 //poiCurrent.visible = true;
+                placeModel.clear();
+                for (var j = 0; j < count; j++)
+                    placeModel.append({
+                                          title: data(j, "title"),
+                                          place: data(j, "place"),
+                                          distance: data(j, "distance"),
+                                          category: "Search"
+                                      });
                 break;
             case PlaceSearchModel.Error:
                 console.log(errorString());
                 break;
             }
         }
+    }
 
+    ListModel {
+        id: placeModel
+
+        function update() {
+            //TODO favorites + recents
+            placeSearchModel.update();
+        }
+
+        function saveFavorites() {
+            //TODO
+        }
+
+        function saveFavorites() {
+            //TODO
+        }
     }
 
     initialPage: Kirigami.ScrollablePage {
-        titleDelegate: Kirigami.SearchField {
+        titleDelegate: Kirigami.ActionTextField {
             id: searchField
+            placeholderText: qsTr("Search...")
+            Accessible.name: qsTr("Search")
+            Accessible.searchEdit: true
+            focusSequence: "Ctrl+F"
             Layout.topMargin: Kirigami.Units.smallSpacing
             Layout.bottomMargin: Kirigami.Units.smallSpacing
             Layout.fillHeight: true
@@ -52,7 +81,7 @@ Kirigami.PageRow {
             KeyNavigation.tab: listView
             rightActions: [
                 Kirigami.Action {
-                    icon.name: "edit-clear"
+                    icon.name: "fa-backspace"
                     visible: searchField.text !== ""
                     onTriggered: {
                         searchField.text = ""
@@ -60,7 +89,6 @@ Kirigami.PageRow {
                     }
                 }
             ]
-
         }
 
         supportsRefreshing: true
@@ -86,9 +114,9 @@ Kirigami.PageRow {
             }
 
             section {
-                property: "sec"
+                property: "category"
                 delegate: Kirigami.ListSectionHeader {
-                    text: "Section " + (parseInt(section) + 1)
+                    text: section
                 }
             }
 
@@ -121,10 +149,35 @@ Kirigami.PageRow {
                         }
                     },
                     Kirigami.Action {
+                        iconName: category === "Favorites" ? "fa-trash" : "fa-star"
+                        id: favoriteButton
+                        text: "Go"
+                        onTriggered: {
+                            if(category === "Favorites") {
+                                placeModel.remove(index);
+                            } else {
+                                //TODO check if not already added
+                                placeModel.append({
+                                                      title: title,
+                                                      place: place,
+                                                      distance: distance,
+                                                      category: "Favorites"
+                                                  });
+                            }
+                        }
+                    },
+                    Kirigami.Action {
                         iconName: "fa-phone"
                         id: goButton
                         text: "Go"
                         onTriggered: {
+                            //TODO check if not already added
+                            placeModel.append({
+                                                  title: title,
+                                                  place: place,
+                                                  distance: distance,
+                                                  category: "Recents"
+                                              });
                             driver.start(QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude));
                         }
                     },
@@ -137,7 +190,7 @@ Kirigami.PageRow {
                     }]
             }
 
-            model: placeSearchModel // TODO section + recents + saved
+            model: placeModel
         }
     }
 }

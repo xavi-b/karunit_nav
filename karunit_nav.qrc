@@ -12,5 +12,8 @@
         <file>icons/FontAwesome/fa-map-pin.svg</file>
         <file>icons/FontAwesome/fa-play-circle.svg</file>
         <file>icons/FontAwesome/fa-stop-circle.svg</file>
+        <file>icons/FontAwesome/fa-backspace.svg</file>
+        <file>icons/FontAwesome/fa-star.svg</file>
+        <file>icons/FontAwesome/fa-trash.svg</file>
     </qresource>
 </RCC>
