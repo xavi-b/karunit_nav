@@ -9,39 +9,6 @@ import QtQuick.Controls 2.15 as Controls
 Item {
     id: mainItem
 
-    InputPanel {
-        id: inputPanel
-
-        z: 99
-        y: mainItem.height
-
-        btnTextFontFamily: "monospace"
-
-        anchors.left: parent.left
-        anchors.right: parent.right
-
-        states: State {
-            name: "visible"
-            when: Qt.inputMethod.visible
-            PropertyChanges {
-                target: inputPanel
-                y: mainItem.height - inputPanel.height
-            }
-        }
-        transitions: Transition {
-            from: ""
-            to: "visible"
-            reversible: true
-            ParallelAnimation {
-                NumberAnimation {
-                    properties: "y"
-                    duration: 150
-                    easing.type: Easing.InOutQuad
-                }
-            }
-        }
-    }
-
     property var port: 50000
     property var host: "localhost"
     property string mapboxAccessToken
@@ -49,6 +16,16 @@ Item {
 
     signal call(string phoneNumber);
     signal tell(string instruction, string distance);
+
+    function loadPlaces() {
+        console.log("loadPlaces");
+        searchPage.model.loadPlaces();
+    }
+
+    function savePlaces() {
+        console.log("savePlaces");
+        searchPage.model.savePlaces();
+    }
 
     Plugin {
         id: mapPlugin

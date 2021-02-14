@@ -10,7 +10,7 @@ import Qt.labs.settings 1.0
 Kirigami.PageRow {
     id: pageRow
 
-    property alias model: placeSearchModel
+    property alias model: placeModel
 
     PlaceSearchModel {
         id: placeSearchModel
@@ -25,7 +25,6 @@ Kirigami.PageRow {
                 //poiCurrent.visible = false;
                 //map.fitViewportToVisibleMapItems();
                 //poiCurrent.visible = true;
-                placeModel.clear();
                 for (var j = 0; j < count; j++)
                     placeModel.append({
                                           title: data(j, "title"),
@@ -45,9 +44,10 @@ Kirigami.PageRow {
         id: placeModel
 
         function update() {
-            for (var i = placeModel.count; i >= 0; --i) {
-                if(placeModel.get(i).category === "Search") {
-                    datamodel.remove(i);
+            for (var i = placeModel.count-1; i >= 0; --i) {
+                var object = placeModel.get(i);
+                if(object.category === "Search") {
+                    placeModel.remove(i);
                 }
             }
             placeSearchModel.update();
@@ -69,7 +69,7 @@ Kirigami.PageRow {
             placeModel.append(objectToAppend);
         }
 
-        Component.onCompleted: {
+        function loadPlaces() {
             if (placeSettings.datastore) {
                 var datamodel = JSON.parse(datastore);
                 for (var i = datamodel.length; i >= 0; --i)
@@ -77,12 +77,14 @@ Kirigami.PageRow {
             }
         }
 
-        Component.onDestruction: {
-            //TODO
+        function savePlaces() {
+            //TODO stringify issue
             var datamodel = [];
             var recentsCount = 10;
-            for (var i = placeModel.count; i >= 0; --i) {
+            console.log("placeModel.count: " + placeModel.count);
+            for (var i = placeModel.count-1; i >= 0; --i) {
                 var object = placeModel.get(i);
+                console.log(JSON.stringify(object));
                 if(object.category === "Favorites") {
                     datamodel.push(object);
                 } else if(object.category === "Recents" && recentsCount > 0) {
@@ -118,7 +120,7 @@ Kirigami.PageRow {
 
                 placeSearchModel.searchTerm = searchField.text;
                 placeSearchModel.searchArea = map.visibleArea;
-                placeSearchModel.update();
+                placeModel.update();
             }
             KeyNavigation.tab: listView
             rightActions: [
@@ -150,7 +152,7 @@ Kirigami.PageRow {
                 helpfulAction: Kirigami.Action {
                     text: "Refresh"
                     onTriggered: {
-                        placeSearchModel.update();
+                        placeModel.update();
                     }
                 }
             }
@@ -223,6 +225,7 @@ Kirigami.PageRow {
                         iconName: "fa-dot-circle"
                         id: focusButton
                         onTriggered: {
+                            savePlaces();
                             map.focusOnPlace(place);
                         }
                     }]

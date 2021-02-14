@@ -27,10 +27,10 @@ Map {
     }
 
     Behavior on center {
-      CoordinateAnimation {
-        duration: driver.timerInterval
-        easing.type: Easing.InOutQuad
-       }
+        CoordinateAnimation {
+            duration: driver.timerInterval
+            easing.type: Easing.InOutQuad
+        }
     }
 
     Behavior on bearing {
@@ -111,7 +111,15 @@ Map {
             sourceItem: Rectangle {
                 width: 30
                 height: width
-                color: "magenta"
+                color: {
+                    if(category === "Favorites") {
+                        return "yellow";
+                    } else if(category === "Recents") {
+                        return "cyan";
+                    } else {
+                        return "magenta";
+                    }
+                }
                 border.width: 2
                 border.color: "white"
                 smooth: true

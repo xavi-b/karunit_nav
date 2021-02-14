@@ -12,6 +12,8 @@ class GeoWidget : public QQuickWidget
     Q_OBJECT
 public:
     GeoWidget(QWidget* parent = nullptr);
+    void loadPlaces();
+    void savePlaces();
 
 signals:
     void log(QString const& log);

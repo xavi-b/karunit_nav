@@ -16,3 +16,13 @@ GeoWidget::GeoWidget(QWidget *parent)
     connect(this->rootObject(), SIGNAL(call(QString)), this, SIGNAL(call(QString const&)));
     connect(this->rootObject(), SIGNAL(tell(QString, QString)), this, SIGNAL(tell(QString const&, QString const&)));
 }
+
+void GeoWidget::loadPlaces()
+{
+    QMetaObject::invokeMethod(this->rootObject(), "loadPlaces");
+}
+
+void GeoWidget::savePlaces()
+{
+    QMetaObject::invokeMethod(this->rootObject(), "savePlaces");
+}

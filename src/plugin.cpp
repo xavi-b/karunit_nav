@@ -52,6 +52,7 @@ QWidget* KU_Nav_Plugin::createWidget()
         data["text"] = instruction + " " + distance;
         this->getPluginConnector()->emitPluginChoiceSignal("tell", data);
     });
+    this->widget->loadPlaces();
     return this->widget;
 }
 
@@ -72,5 +73,6 @@ bool KU_Nav_Plugin::loadSettings()
 
 bool KU_Nav_Plugin::saveSettings() const
 {
+    this->widget->savePlaces();
     return KU::Settings::instance()->status() == QSettings::NoError;
 }
