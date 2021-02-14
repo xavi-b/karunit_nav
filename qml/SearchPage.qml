@@ -111,11 +111,9 @@ Kirigami.PageRow {
                 }
                 actions: [
                     Kirigami.Action {
-                        iconName: "call"
+                        iconName: "fa-phone"
                         id: callButton
                         visible: place.primaryPhone ? true : false
-                        //font.family: "Font Awesome 5 Free"
-                        text: "\uf192"
                         onTriggered: {
                             if(place.primaryPhone) {
                                 call(place.primaryPhone);
@@ -123,16 +121,15 @@ Kirigami.PageRow {
                         }
                     },
                     Kirigami.Action {
-                        iconName: "go"
+                        iconName: "fa-phone"
                         id: goButton
-                        //font.family: "Font Awesome 5 Free"
                         text: "Go"
                         onTriggered: {
                             driver.start(QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude));
                         }
                     },
                     Kirigami.Action {
-                        iconName: "focus"
+                        iconName: "fa-dot-circle"
                         text: "Action 2"
                         onTriggered: {
                             map.focusOnPlace(place);

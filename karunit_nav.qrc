@@ -6,5 +6,11 @@
         <file>qml/DrivingMap.qml</file>
         <file>qml/utils.js</file>
         <file>qml/Driver.qml</file>
+        <file>icons/FontAwesome/fa-phone.svg</file>
+        <file>icons/FontAwesome/fa-compass.svg</file>
+        <file>icons/FontAwesome/fa-dot-circle.svg</file>
+        <file>icons/FontAwesome/fa-map-pin.svg</file>
+        <file>icons/FontAwesome/fa-play-circle.svg</file>
+        <file>icons/FontAwesome/fa-stop-circle.svg</file>
     </qresource>
 </RCC>

@@ -27,6 +27,7 @@ QIcon KU_Nav_Plugin::icon() const
 
 bool KU_Nav_Plugin::initialize()
 {
+    QIcon::setFallbackSearchPaths(QIcon::fallbackSearchPaths() << ":/karunit_nav/icons/FontAwesome");
     return true;
 }
 

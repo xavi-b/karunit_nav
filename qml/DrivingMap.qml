@@ -18,7 +18,7 @@ Map {
     function focusOnPlace(place) {
         console.log("focusOnPlace");
         map.center = place.location.coordinate;
-        map.zoomLevel = defaultZoom;
+        //map.zoomLevel = defaultZoom;
 
         currentIndexCoordinate = QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude);
         if (!place.detailsFetched) {
@@ -139,8 +139,7 @@ Map {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        font.family: "Font Awesome 5 Free"
-        text: driver.driving ? "\uf057" : "\uf144"
+        icon.name: driver.driving ? "fa-stop-circle" : "fa-start-circle"
         onClicked: {
             driver.updateDriving();
         }
@@ -155,8 +154,8 @@ Map {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        font.family: "Font Awesome 5 Free"
-        text: "\uf14e"
+        icon.name: "fa-compass"
+        icon.height: height
         font.pixelSize: Qt.application.font.pixelSize * 1.6
         onClicked: {
             map.bearing = 0;
@@ -172,8 +171,7 @@ Map {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        font.family: "Font Awesome 5 Free"
-        text: "\uf192"
+        icon.name: "fa-dot-circle"
         onClicked: {
             map.center = positionSource.position.coordinate;
         }
