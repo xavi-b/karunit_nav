@@ -26,12 +26,23 @@ Kirigami.PageRow {
                 //map.fitViewportToVisibleMapItems();
                 //poiCurrent.visible = true;
                 for (var j = 0; j < count; j++)
+                {
+                    var place = data(j, "place");
                     placeModel.append({
                                           title: data(j, "title"),
-                                          place: data(j, "place"),
+                                          place: {
+                                              location: {
+                                                  coordinate: QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude),
+                                                  address: {
+                                                      text: place.location.address.text
+                                                  }
+                                              },
+                                              primaryPhone: place.primaryPhone
+                                          },
                                           distance: data(j, "distance"),
                                           category: "Search"
                                       });
+                }
                 break;
             case PlaceSearchModel.Error:
                 console.log(errorString());
@@ -71,20 +82,19 @@ Kirigami.PageRow {
 
         function loadPlaces() {
             if (placeSettings.datastore) {
-                var datamodel = JSON.parse(datastore);
+                var datamodel = JSON.parse(placeSettings.datastore);
                 for (var i = datamodel.length; i >= 0; --i)
                     placeModel.append(datamodel[i]);
             }
         }
 
         function savePlaces() {
-            //TODO stringify issue
             var datamodel = [];
             var recentsCount = 10;
             console.log("placeModel.count: " + placeModel.count);
             for (var i = placeModel.count-1; i >= 0; --i) {
                 var object = placeModel.get(i);
-                console.log(JSON.stringify(object));
+                // console.log(JSON.stringify(object));
                 if(object.category === "Favorites") {
                     datamodel.push(object);
                 } else if(object.category === "Recents" && recentsCount > 0) {
@@ -93,6 +103,8 @@ Kirigami.PageRow {
                 }
             }
             placeSettings.datastore = JSON.stringify(datamodel);
+            console.log("placeSettings.datastore: " + placeSettings.datastore);
+            placeSettings.sync();
         }
     }
 

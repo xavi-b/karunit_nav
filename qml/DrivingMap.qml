@@ -21,9 +21,9 @@ Map {
         //map.zoomLevel = defaultZoom;
 
         currentIndexCoordinate = QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude);
-        if (!place.detailsFetched) {
-            place.getDetails();
-        }
+//        if (!place.detailsFetched) {
+//            place.getDetails();
+//        }
     }
 
     Behavior on center {
@@ -147,7 +147,7 @@ Map {
         anchors.rightMargin: 20
         anchors.bottomMargin: 20
 
-        icon.name: driver.driving ? "fa-stop-circle" : "fa-start-circle"
+        icon.name: driver.driving ? "fa-stop-circle" : "fa-play-circle"
         onClicked: {
             driver.updateDriving();
         }
