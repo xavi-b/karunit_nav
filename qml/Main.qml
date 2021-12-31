@@ -6,39 +6,60 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.15 as Kirigami
 import QtQuick.Controls 2.15 as Controls
 
+import KarunitPlugins 1.0
+
 Item {
     id: mainItem
 
-    property var port: 50000
-    property var host: "localhost"
-    property string mapboxAccessToken
-    property var defaultZoom: 12
+    property int port: 50000
+    property string host: "localhost"
+    property string mapboxAccessToken: KUPNavPluginConnector.mapboxAccessToken
+    property int defaultZoom: 12
 
-    signal call(string phoneNumber);
-    signal tell(string instruction, string distance);
+    function call(phoneNumber) {
+        KUPNavPluginConnector.call(phoneNumber)
+    }
+
+    function tell(instruction, distance) {
+        KUPNavPluginConnector.tell(instruction, distance)
+    }
 
     function loadPlaces() {
-        console.log("loadPlaces");
-        searchPage.model.loadPlaces();
+        console.log("loadPlaces")
+        searchPage.model.loadPlaces()
     }
 
     function savePlaces() {
-        console.log("savePlaces");
-        searchPage.model.savePlaces();
+        console.log("savePlaces")
+        searchPage.model.savePlaces()
+    }
+
+    Component.onCompleted: {
+        loadPlaces()
+    }
+
+    Component.onDestruction: {
+        savePlaces()
     }
 
     Plugin {
         id: mapPlugin
         name: "mapboxgl"
 
-        PluginParameter { name: "mapbox.access_token"; value: mapboxAccessToken }
+        PluginParameter {
+            name: "mapbox.access_token"
+            value: mapboxAccessToken
+        }
     }
 
     Plugin {
         id: geoPlugin
         name: "mapbox"
 
-        PluginParameter { name: "mapbox.access_token"; value: mapboxAccessToken }
+        PluginParameter {
+            name: "mapbox.access_token"
+            value: mapboxAccessToken
+        }
     }
 
     PositionSource {
@@ -47,41 +68,51 @@ Item {
         active: false
         //        name: "gpsd"
         name: "fake"
-        
-        PluginParameter { name: "port"; value: port }
-        PluginParameter { name: "host"; value: host }
+
+        PluginParameter {
+            name: "port"
+            value: port
+        }
+        PluginParameter {
+            name: "host"
+            value: host
+        }
 
         Component.onCompleted: {
-            console.log("PositionSource ready");
-            positionSource.start();
+            console.log("PositionSource ready")
+            positionSource.start()
         }
 
         onPositionChanged: {
-            driver.update();
+            driver.update()
         }
 
         onSourceErrorChanged: {
-            switch(sourceError) {
+            switch (sourceError) {
             case PositionSource.AccessError:
-                console.log("AccessError"); break;
+                console.log("AccessError")
+                break
             case PositionSource.ClosedError:
-                console.log("ClosedError"); break;
+                console.log("ClosedError")
+                break
             case PositionSource.NoError:
-                console.log("NoError"); break;
+                console.log("NoError")
+                break
             case PositionSource.UnknownSourceError:
-                console.log("UnknownSourceError"); break;
+                console.log("UnknownSourceError")
+                break
             case PositionSource.AccessError:
-                console.log("SocketError"); break;
+                console.log("SocketError")
+                break
             }
-
         }
 
         onUpdateTimeout: {
-            console.log("Update timeout");
+            console.log("Update timeout")
         }
 
         onActiveChanged: {
-            console.log("Active: " + active);
+            console.log("Active: " + active)
         }
     }
 
