@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtLocation 5.15
 import QtPositioning 5.15
-import QtQuick.FreeVirtualKeyboard 1.0
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.15 as Kirigami
 import QtQuick.Controls 2.15 as Controls

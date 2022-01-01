@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtLocation 5.15
 import QtPositioning 5.15
-import QtQuick.FreeVirtualKeyboard 1.0
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.15 as Kirigami
 import QtQuick.Controls 2.15 as Controls
@@ -21,32 +20,32 @@ Kirigami.PageRow {
         onStatusChanged: {
             switch (status) {
             case PlaceSearchModel.Ready:
-                console.log("onStatusChanged Ready");
+                console.log("onStatusChanged Ready")
                 //poiCurrent.visible = false;
                 //map.fitViewportToVisibleMapItems();
                 //poiCurrent.visible = true;
-                for (var j = 0; j < count; j++)
-                {
-                    var place = data(j, "place");
+                for (var j = 0; j < count; j++) {
+                    var place = data(j, "place")
                     placeModel.append({
-                                          title: data(j, "title"),
-                                          place: {
-                                              location: {
-                                                  coordinate: QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude),
-                                                  address: {
-                                                      text: place.location.address.text
+                                          "title": data(j, "title"),
+                                          "place": {
+                                              "location": {
+                                                  "coordinate": QtPositioning.coordinate(
+                                                                    place.location.coordinate.latitude, place.location.coordinate.longitude),
+                                                  "address": {
+                                                      "text": place.location.address.text
                                                   }
                                               },
-                                              primaryPhone: place.primaryPhone
+                                              "primaryPhone": place.primaryPhone
                                           },
-                                          distance: data(j, "distance"),
-                                          category: "Search"
-                                      });
+                                          "distance": data(j, "distance"),
+                                          "category": "Search"
+                                      })
                 }
-                break;
+                break
             case PlaceSearchModel.Error:
-                console.log(errorString());
-                break;
+                console.log(errorString())
+                break
             }
         }
     }
@@ -55,56 +54,58 @@ Kirigami.PageRow {
         id: placeModel
 
         function update() {
-            for (var i = placeModel.count-1; i >= 0; --i) {
-                var object = placeModel.get(i);
-                if(object.category === "Search") {
-                    placeModel.remove(i);
+            for (var i = placeModel.count - 1; i >= 0; --i) {
+                var object = placeModel.get(i)
+                if (object.category === "Search") {
+                    placeModel.remove(i)
                 }
             }
-            placeSearchModel.update();
+            placeSearchModel.update()
         }
 
         function appendIfNotExist(objectToAppend) {
             for (var i = 0; i < placeModel.count; i++) {
-                var object = placeModel.get(i);
-                if(object.place == objectToAppend.place) {
-                    if (object.category === "Favorites" && objectToAppend.category === "Favorites") {
-                        return;
+                var object = placeModel.get(i)
+                if (object.place == objectToAppend.place) {
+                    if (object.category === "Favorites"
+                            && objectToAppend.category === "Favorites") {
+                        return
                     }
-                    if (object.category === "Recents" && objectToAppend.category === "Recents") {
-                        placeModel.remove(i);
-                        break;
+                    if (object.category === "Recents"
+                            && objectToAppend.category === "Recents") {
+                        placeModel.remove(i)
+                        break
                     }
                 }
             }
-            placeModel.append(objectToAppend);
+            placeModel.append(objectToAppend)
         }
 
         function loadPlaces() {
             if (placeSettings.datastore) {
-                var datamodel = JSON.parse(placeSettings.datastore);
+                var datamodel = JSON.parse(placeSettings.datastore)
                 for (var i = datamodel.length; i >= 0; --i)
-                    placeModel.append(datamodel[i]);
+                    placeModel.append(datamodel[i])
             }
         }
 
         function savePlaces() {
-            var datamodel = [];
-            var recentsCount = 10;
-            console.log("placeModel.count: " + placeModel.count);
-            for (var i = placeModel.count-1; i >= 0; --i) {
-                var object = placeModel.get(i);
+            var datamodel = []
+            var recentsCount = 10
+            console.log("placeModel.count: " + placeModel.count)
+            for (var i = placeModel.count - 1; i >= 0; --i) {
+                var object = placeModel.get(i)
                 // console.log(JSON.stringify(object));
-                if(object.category === "Favorites") {
-                    datamodel.push(object);
-                } else if(object.category === "Recents" && recentsCount > 0) {
-                    datamodel.push(object);
-                    --recentsCount;
+                if (object.category === "Favorites") {
+                    datamodel.push(object)
+                } else if (object.category === "Recents" && recentsCount > 0) {
+                    datamodel.push(object)
+                    --recentsCount
                 }
             }
-            placeSettings.datastore = JSON.stringify(datamodel);
-            console.log("placeSettings.datastore: " + placeSettings.datastore);
-            placeSettings.sync();
+            placeSettings.datastore = JSON.stringify(datamodel)
+            console.log("placeSettings.datastore: " + placeSettings.datastore)
+            placeSettings.sync()
         }
     }
 
@@ -125,14 +126,14 @@ Kirigami.PageRow {
             Layout.fillHeight: true
             Layout.fillWidth: true
             onTextChanged: {
-                if(searchField.text == "") {
-                    placeSearchModel.reset();
-                    return;
+                if (searchField.text == "") {
+                    placeSearchModel.reset()
+                    return
                 }
 
-                placeSearchModel.searchTerm = searchField.text;
-                placeSearchModel.searchArea = map.visibleArea;
-                placeModel.update();
+                placeSearchModel.searchTerm = searchField.text
+                placeSearchModel.searchArea = map.visibleArea
+                placeModel.update()
             }
             KeyNavigation.tab: listView
             rightActions: [
@@ -150,7 +151,7 @@ Kirigami.PageRow {
         supportsRefreshing: true
         onRefreshingChanged: {
             if (refreshing) {
-                placeModel.update();
+                placeModel.update()
             }
         }
 
@@ -164,7 +165,7 @@ Kirigami.PageRow {
                 helpfulAction: Kirigami.Action {
                     text: "Refresh"
                     onTriggered: {
-                        placeModel.update();
+                        placeModel.update()
                     }
                 }
             }
@@ -181,16 +182,22 @@ Kirigami.PageRow {
                 contentItem: ColumnLayout {
                     Controls.Label {
                         Layout.fillWidth: true
-                        height: Math.max(implicitHeight, Kirigami.Units.iconSizes.smallMedium)
+                        height: Math.max(implicitHeight,
+                                         Kirigami.Units.iconSizes.smallMedium)
                         text: title + "<br>" + place.location.address.text
-                        color: listItem.checked || (listItem.pressed && !listItem.checked && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
+                        color: listItem.checked
+                               || (listItem.pressed && !listItem.checked
+                                   && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
                     }
 
                     Controls.Label {
                         Layout.fillWidth: true
-                        height: Math.max(implicitHeight, Kirigami.Units.iconSizes.smallMedium)
+                        height: Math.max(implicitHeight,
+                                         Kirigami.Units.iconSizes.smallMedium)
                         text: "Phone: " + (place.primaryPhone ? place.primaryPhone : "NONE")
-                        color: listItem.checked || (listItem.pressed && !listItem.checked && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
+                        color: listItem.checked
+                               || (listItem.pressed && !listItem.checked
+                                   && !listItem.sectionDelegate) ? listItem.activeTextColor : listItem.textColor
                     }
                 }
                 actions: [
@@ -199,8 +206,8 @@ Kirigami.PageRow {
                         id: callButton
                         visible: place.primaryPhone ? true : false
                         onTriggered: {
-                            if(place.primaryPhone) {
-                                call(place.primaryPhone);
+                            if (place.primaryPhone) {
+                                call(place.primaryPhone)
                             }
                         }
                     },
@@ -208,15 +215,15 @@ Kirigami.PageRow {
                         iconName: category === "Favorites" ? "fa-trash" : "fa-star"
                         id: favoriteButton
                         onTriggered: {
-                            if(category === "Favorites") {
-                                placeModel.remove(index);
+                            if (category === "Favorites") {
+                                placeModel.remove(index)
                             } else {
                                 placeModel.appendIfNotExist({
-                                                                title: title,
-                                                                place: place,
-                                                                distance: distance,
-                                                                category: "Favorites"
-                                                            });
+                                                                "title": title,
+                                                                "place": place,
+                                                                "distance": distance,
+                                                                "category": "Favorites"
+                                                            })
                             }
                         }
                     },
@@ -225,22 +232,26 @@ Kirigami.PageRow {
                         id: goButton
                         onTriggered: {
                             placeModel.appendIfNotExist({
-                                                            title: title,
-                                                            place: place,
-                                                            distance: distance,
-                                                            category: "Recents"
-                                                        });
-                            driver.start(QtPositioning.coordinate(place.location.coordinate.latitude, place.location.coordinate.longitude));
+                                                            "title": title,
+                                                            "place": place,
+                                                            "distance": distance,
+                                                            "category": "Recents"
+                                                        })
+                            driver.start(
+                                QtPositioning.coordinate(
+                                    place.location.coordinate.latitude,
+                                    place.location.coordinate.longitude))
                         }
                     },
                     Kirigami.Action {
                         iconName: "fa-dot-circle"
                         id: focusButton
                         onTriggered: {
-                            savePlaces();
-                            map.focusOnPlace(place);
+                            savePlaces()
+                            map.focusOnPlace(place)
                         }
-                    }]
+                    }
+                ]
             }
 
             model: placeModel
