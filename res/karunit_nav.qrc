@@ -1,11 +1,5 @@
 <RCC>
     <qresource prefix="/karunit_nav">
-        <file alias="widget.qml">qml/Main.qml</file>
-        <file alias="SearchPage.qml">qml/SearchPage.qml</file>
-        <file>mapbox.json</file>
-        <file alias="DrivingMap.qml">qml/DrivingMap.qml</file>
-        <file>qml/utils.js</file>
-        <file alias="Driver.qml">qml/Driver.qml</file>
         <file>icons/FontAwesome/fa-phone.svg</file>
         <file>icons/FontAwesome/fa-compass.svg</file>
         <file>icons/FontAwesome/fa-dot-circle.svg</file>
@@ -15,5 +9,12 @@
         <file>icons/FontAwesome/fa-backspace.svg</file>
         <file>icons/FontAwesome/fa-star.svg</file>
         <file>icons/FontAwesome/fa-trash.svg</file>
+        <file alias="widget.qml">qml/Main.qml</file>
+        <file alias="SearchPage.qml">qml/SearchPage.qml</file>
+        <file>mapbox.json</file>
+        <file alias="DrivingMap.qml">qml/DrivingMap.qml</file>
+        <file>qml/utils.js</file>
+        <file alias="Driver.qml">qml/Driver.qml</file>
+        <file alias="about.qml">qml/about.qml</file>
     </qresource>
 </RCC>
