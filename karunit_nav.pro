@@ -20,9 +20,8 @@ LIBS += -L$$PWD/../karunit/third-party/xblog/lib -lxblog
 INCLUDEPATH += $$PWD/../karunit/third-party/xblog/include
 
 SUBDIRS += \
-    src/
+    src/ \
+    res/
 
 include(src/src.pri)
-
-RESOURCES += \
-    karunit_nav.qrc
+include(res/res.pri)

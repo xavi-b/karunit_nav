@@ -2,7 +2,7 @@
     <qresource prefix="/karunit_nav">
         <file alias="widget.qml">qml/Main.qml</file>
         <file alias="SearchPage.qml">qml/SearchPage.qml</file>
-        <file>res/mapbox.json</file>
+        <file>mapbox.json</file>
         <file alias="DrivingMap.qml">qml/DrivingMap.qml</file>
         <file>qml/utils.js</file>
         <file alias="Driver.qml">qml/Driver.qml</file>

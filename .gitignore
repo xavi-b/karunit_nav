@@ -52,3 +52,5 @@ compile_commands.json
 *creator.user*
 
 run_fakesource
+
+qmake_qmake_qm_files.qrc
