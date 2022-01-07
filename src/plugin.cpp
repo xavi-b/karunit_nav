@@ -69,7 +69,7 @@ bool KU_Nav_Plugin::loadSettings()
     return true;
 }
 
-bool KU_Nav_Plugin::saveSettings() const
+bool KU_Nav_Plugin::saveSettings()
 {
     return KU::Settings::instance()->status() == QSettings::NoError;
 }
